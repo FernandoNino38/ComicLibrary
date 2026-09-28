@@ -20,9 +20,10 @@ import kotlinx.coroutines.launch
  * Utilizes [AppDispatchers.libraryIndexing] (limitedParallelism(4)) for concurrency limits.
  */
 class LibraryViewModel(
-    application: Application,
-    private val repository: ComicRepository = ComicRepository(application)
+    application: Application
 ) : AndroidViewModel(application) {
+
+    private val repository: ComicRepository = ComicRepository(application)
 
     private val _state = MutableStateFlow(LibraryState())
     val state: StateFlow<LibraryState> = _state.asStateFlow()
