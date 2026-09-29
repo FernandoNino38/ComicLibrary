@@ -1,0 +1,77 @@
+<resources>
+    <string name="app_name">ComicLibrary</string>
+    <string name="nav_library">Biblioteca</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="search_placeholder">Buscar título, autor ou gênero…</string>
+    <string name="search_comics">Buscar Quadrinhos</string>
+    <string name="close_search">Fechar Busca</string>
+    <string name="library_empty_count">Nenhum quadrinho na estante</string>
+    <string name="library_stats_format">%1$d volumes  •  %2$d em leitura</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_favorites">Favoritos</string>
+    <string name="filter_reading">Lendo</string>
+    <string name="filter_completed">Concluídos</string>
+    <string name="filter_manga">Mangá</string>
+    <string name="badge_manga">MANGÁ</string>
+    <string name="favorite_cd">Favorito</string>
+    <string name="pages_count_format">%1$d páginas</string>
+    <string name="empty_library_title">Sua biblioteca está vazia</string>
+    <string name="empty_library_desc">Para adicionar arquivos .CBZ individuais ou diretórios inteiros, acesse a aba Ajustes.</string>
+    <string name="btn_go_to_settings">Acessar Ajustes para Importar</string>
+    <string name="no_comics_matched">Nenhum quadrinho corresponde à pesquisa \'%1$s\'.</string>
+    <string name="importing_progress_format">Importando (%1$d de %2$d)…</string>
+    
+    <!-- Detail Dialog -->
+    <string name="dialog_series">Série: %1$s</string>
+    <string name="dialog_publisher">Editora: %1$s</string>
+    <string name="dialog_stats_format">%1$d páginas  •  %2$d%% lido</string>
+    <string name="dialog_storage_location">Armazenamento Interno</string>
+    <string name="dialog_filename">Nome do Arquivo</string>
+    <string name="dialog_file_size">Tamanho do Arquivo</string>
+    <string name="dialog_current_page">Página Atual</string>
+    <string name="dialog_page_progress_format">%1$d de %2$d</string>
+    <string name="dialog_status">Status</string>
+    <string name="status_completed">Concluído</string>
+    <string name="status_reading">Em Leitura</string>
+    <string name="status_unread">Não Lido</string>
+    <string name="dialog_reading_mode">Modo de Leitura</string>
+    <string name="reading_mode_manga_desc">Mangá (Direita para Esquerda - RTL)</string>
+    <string name="reading_mode_western_desc">Ocidental (Esquerda para Direita - LTR)</string>
+    <string name="dialog_writer">Roteirista</string>
+    <string name="dialog_penciller">Desenhista</string>
+    <string name="dialog_genre">Gênero</string>
+    <string name="dialog_release_year">Ano de Lançamento</string>
+    <string name="dialog_synopsis">Sinopse</string>
+    <string name="btn_read_now">Ler Agora</string>
+    <string name="btn_close">Fechar</string>
+
+    <!-- Reader -->
+    <string name="reader_loading_format">Carregando página %1$d…</string>
+    <string name="reader_first_page">Primeira Página</string>
+    <string name="reader_last_page">Última Página</string>
+    <string name="reader_page_indicator_format">%1$d de %2$d</string>
+    <string name="reader_back">Voltar</string>
+    <string name="reader_toggle_reading_direction">Alternar Orientação de Leitura</string>
+    <string name="reader_mode_manga_title">Modo Mangá (Direita para Esquerda)</string>
+    <string name="reader_mode_western_title">Modo Quadrinho (Esquerda para Direita)</string>
+    <string name="reader_page_prefix">Página</string>
+    <string name="reader_page_of">de</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_subtitle">Gerenciamento de Biblioteca &amp; Diagnóstico</string>
+    <string name="settings_import_title">Importar Quadrinhos</string>
+    <string name="settings_import_desc">Adicione arquivos .cbz ou .zip individuais ou selecione diretórios inteiros para indexação em segundo plano.</string>
+    <string name="settings_btn_files">Arquivos</string>
+    <string name="settings_btn_folder">Pasta</string>
+    <string name="settings_memory_title">Bitmap Tiling &amp; OOM Guard</string>
+    <string name="settings_memory_desc">BitmapRegionDecoder fragmenta páginas de ultra-alta resolução em sub-ladrilhos com bounds restritos, prevenindo estouro de memória RAM.</string>
+    <string name="settings_storage_title">Scoped Storage &amp; SAF</string>
+    <string name="settings_storage_desc">Acesso seguro aos arquivos respeitando o isolamento do Android via Storage Access Framework e ZipFile com O(1) de acesso.</string>
+    <string name="settings_cache_title">Clear Decoded Cache</string>
+    <string name="settings_cache_desc">Recicla alocações de páginas da memória imediatamente.</string>
+    <string name="settings_cache_cleared">Heap Limpo: Coleta de Lixo executada</string>
+    <string name="settings_app_info_title">Informações do Aplicativo</string>
+    <string name="settings_version_label">Versão</string>
+    <string name="settings_architecture_label">Arquitetura</string>
+</resources>

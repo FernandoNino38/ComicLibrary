@@ -60,7 +60,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.example.comiclibrary.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -443,7 +445,7 @@ private fun ReaderReadyView(
                         IconButton(onClick = onBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Voltar",
+                                contentDescription = stringResource(R.string.reader_back),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -459,7 +461,11 @@ private fun ReaderReadyView(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = if (state.isManga) "Modo Mangá (Direita para Esquerda)" else "Modo Quadrinho (Esquerda para Direita)",
+                                text = if (state.isManga) {
+                                    stringResource(R.string.reader_mode_manga_title)
+                                } else {
+                                    stringResource(R.string.reader_mode_western_title)
+                                },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -473,7 +479,7 @@ private fun ReaderReadyView(
                         icon = {
                             Icon(
                                 Icons.Default.SwapHoriz,
-                                contentDescription = "Alternar Orientação de Leitura",
+                                contentDescription = stringResource(R.string.reader_toggle_reading_direction),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -537,13 +543,17 @@ private fun ReaderReadyView(
                         }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.MenuBook,
-                                contentDescription = "Primeira Página",
+                                contentDescription = stringResource(R.string.reader_first_page),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         Text(
-                            text = "${pagerState.currentPage + 1} de $totalPages",
+                            text = stringResource(
+                                R.string.reader_page_indicator_format,
+                                pagerState.currentPage + 1,
+                                totalPages
+                            ),
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -558,7 +568,7 @@ private fun ReaderReadyView(
                         }) {
                             Icon(
                                 Icons.Default.AutoStories,
-                                contentDescription = "Última Página",
+                                contentDescription = stringResource(R.string.reader_last_page),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }

@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import com.example.comiclibrary.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +43,7 @@ fun PageScrubber(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Page ${currentPage + 1}",
+                text = "${stringResource(R.string.reader_page_prefix)} ${currentPage + 1}",
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
@@ -49,7 +51,7 @@ fun PageScrubber(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "of $totalPages",
+                text = "${stringResource(R.string.reader_page_of)} $totalPages",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

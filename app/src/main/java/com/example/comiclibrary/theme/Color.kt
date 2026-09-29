@@ -2,19 +2,19 @@ package com.example.comiclibrary.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Thermal Contrast & OLED Dark Palette (MD3 + One UI 9)
+// Pure AMOLED Black Palette (#000000)
 val AmoledBlack = Color(0xFF000000)
-val DarkSurface = Color(0xFF0F1115)
-val DarkSurfaceVariant = Color(0xFF181B22)
-val DarkOutline = Color(0xFF2B303C)
+val DarkSurface = Color(0xFF000000)
+val DarkSurfaceVariant = Color(0xFF0D0D0D)
+val DarkOutline = Color(0xFF222222)
 
-// Material 3 Dark Tonal Elevation Containers
-val DarkSurfaceContainerLowest = Color(0xFF0A0D14)
-val DarkSurfaceContainerLow = Color(0xFF12161F)
-val DarkSurfaceContainer = Color(0xFF181D29)
-val DarkSurfaceContainerHigh = Color(0xFF202636)
-val DarkSurfaceContainerHighest = Color(0xFF283042)
-val DarkOutlineVariant = Color(0xFF374053)
+// Material 3 Dark Tonal Elevation Containers (Pure AMOLED tuned)
+val DarkSurfaceContainerLowest = Color(0xFF000000)
+val DarkSurfaceContainerLow = Color(0xFF060606)
+val DarkSurfaceContainer = Color(0xFF0F0F0F)
+val DarkSurfaceContainerHigh = Color(0xFF171717)
+val DarkSurfaceContainerHighest = Color(0xFF202020)
+val DarkOutlineVariant = Color(0xFF2E2E2E)
 
 val OneUIAccentBlue = Color(0xFF2E7CF6)
 val OneUIAccentCyan = Color(0xFF00E5FF)

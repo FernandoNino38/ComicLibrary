@@ -33,8 +33,6 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -65,6 +63,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,20 +74,18 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.comiclibrary.R
 import com.example.comiclibrary.data.model.ComicBook
+import com.example.comiclibrary.theme.ComicTitleFontFamily
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.SquircleShape
 import java.io.File
 import java.util.Locale
 
 /**
- * Comic Library Screen (v0.3).
- * Refinements:
- * - Top header features an expandable search icon (magnifying glass) that smoothly morphs into an input bar.
- * - Imports (file and folder) moved to Settings (Ajustes).
- * - Single tap on comic card opens the reader directly.
- * - Long press on comic card opens a comprehensive metadata popup dialog in the center.
- * - Filter chips (Todos, Favoritos, Lendo, Concluídos, Mangá) are horizontally scrollable.
+ * Comic Library Screen.
+ * Internationalized (English / Portuguese based on system locale),
+ * Pure AMOLED Black Theme (#000000), and Comic/Onomatopoeia Font (Bangers) for Title.
  */
 @Composable
 fun ComicLibraryScreen(
@@ -103,8 +100,16 @@ fun ComicLibraryScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var isSearchExpanded by remember { mutableStateOf(false) }
-    var selectedFilter by remember { mutableStateOf("Todos") }
+    var selectedFilterKey by remember { mutableStateOf("all") }
     var comicForDetailDialog by remember { mutableStateOf<ComicBook?>(null) }
+
+    val filterOptions = listOf(
+        "all" to stringResource(R.string.filter_all),
+        "favorites" to stringResource(R.string.filter_favorites),
+        "reading" to stringResource(R.string.filter_reading),
+        "completed" to stringResource(R.string.filter_completed),
+        "manga" to stringResource(R.string.filter_manga)
+    )
 
     val filteredComics = comics.filter { comic ->
         val matchesQuery = searchQuery.isBlank() ||
@@ -112,11 +117,11 @@ fun ComicLibraryScreen(
                 comic.metadata.writer.contains(searchQuery, ignoreCase = true) ||
                 comic.metadata.genre.contains(searchQuery, ignoreCase = true)
 
-        val matchesFilter = when (selectedFilter) {
-            "Favoritos" -> comic.isFavorite
-            "Lendo" -> comic.lastReadPage > 0 && !comic.isFinished
-            "Concluídos" -> comic.isFinished
-            "Mangá" -> comic.metadata.isManga
+        val matchesFilter = when (selectedFilterKey) {
+            "favorites" -> comic.isFavorite
+            "reading" -> comic.lastReadPage > 0 && !comic.isFinished
+            "completed" -> comic.isFinished
+            "manga" -> comic.metadata.isManga
             else -> true
         }
 
@@ -128,7 +133,7 @@ fun ComicLibraryScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // TOP HEADER: Expandable Search Bar & Title
+        // TOP HEADER: Expandable Search Bar & Comic Title
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -147,9 +152,14 @@ fun ComicLibraryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
+                            // Authentic Comic/Onomatopoeia Font Title
                             Text(
-                                text = "Biblioteca",
-                                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
+                                text = stringResource(R.string.nav_library),
+                                style = MaterialTheme.typography.displaySmall.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    fontSize = 42.sp,
+                                    letterSpacing = 2.sp
+                                ),
                                 color = MaterialTheme.colorScheme.onBackground
                             )
 
@@ -157,9 +167,13 @@ fun ComicLibraryScreen(
 
                             Text(
                                 text = if (comics.isEmpty()) {
-                                    "Nenhum quadrinho na estante"
+                                    stringResource(R.string.library_empty_count)
                                 } else {
-                                    "${comics.size} volumes  •  ${comics.count { it.lastReadPage > 0 }} em leitura"
+                                    stringResource(
+                                        R.string.library_stats_format,
+                                        comics.size,
+                                        comics.count { it.lastReadPage > 0 }
+                                    )
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -174,7 +188,7 @@ fun ComicLibraryScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = "Buscar Quadrinhos",
+                                contentDescription = stringResource(R.string.search_comics),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -183,7 +197,7 @@ fun ComicLibraryScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Buscar título, autor ou gênero...") },
+                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Search,
@@ -196,7 +210,10 @@ fun ComicLibraryScreen(
                                 searchQuery = ""
                                 isSearchExpanded = false
                             }) {
-                                Icon(Icons.Default.Close, contentDescription = "Fechar Busca")
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.close_search)
+                                )
                             }
                         },
                         singleLine = true,
@@ -224,7 +241,7 @@ fun ComicLibraryScreen(
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "Importando ($current de $total)...",
+                        text = stringResource(R.string.importing_progress_format, current, total),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -252,11 +269,11 @@ fun ComicLibraryScreen(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    listOf("Todos", "Favoritos", "Lendo", "Concluídos", "Mangá").forEach { filter ->
+                    filterOptions.forEach { (key, label) ->
                         FilterChip(
-                            selected = selectedFilter == filter,
-                            onClick = { selectedFilter = filter },
-                            label = { Text(filter, fontSize = 13.sp) },
+                            selected = selectedFilterKey == key,
+                            onClick = { selectedFilterKey = key },
+                            label = { Text(label, fontSize = 13.sp) },
                             shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.6f),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
@@ -301,7 +318,7 @@ fun ComicLibraryScreen(
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = "Sua biblioteca está vazia",
+                                text = stringResource(R.string.empty_library_title),
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -309,7 +326,7 @@ fun ComicLibraryScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = "Para adicionar quadrinhos .CBZ ou diretórios inteiros, acesse a aba Ajustes.",
+                                text = stringResource(R.string.empty_library_desc),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
@@ -323,7 +340,7 @@ fun ComicLibraryScreen(
                             ) {
                                 Icon(Icons.Default.Settings, contentDescription = null)
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Acessar Ajustes para Importar")
+                                Text(stringResource(R.string.btn_go_to_settings))
                             }
                         }
                     }
@@ -334,7 +351,7 @@ fun ComicLibraryScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Nenhum quadrinho corresponde à pesquisa '$searchQuery'.",
+                        text = stringResource(R.string.no_comics_matched, searchQuery),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -443,7 +460,7 @@ private fun ComicFocusBlockItem(
             ) {
                 Icon(
                     imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorito",
+                    contentDescription = stringResource(R.string.favorite_cd),
                     tint = if (comic.isFavorite) Color.Red else Color.White.copy(alpha = 0.8f)
                 )
             }
@@ -458,7 +475,7 @@ private fun ComicFocusBlockItem(
                         .padding(6.dp)
                 ) {
                     Text(
-                        text = "MANGÁ",
+                        text = stringResource(R.string.badge_manga),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = Color(0xFFFF4081),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -495,7 +512,7 @@ private fun ComicFocusBlockItem(
         // Subtitle
         val subtitle = buildString {
             if (comic.metadata.year != null) append("${comic.metadata.year} • ")
-            append("${comic.totalPages} páginas")
+            append(comic.totalPages.toString() + " " + stringResource(R.string.pages_count_format, comic.totalPages).replace(comic.totalPages.toString(), "").trim())
         }
         Text(
             text = subtitle,
@@ -598,7 +615,7 @@ fun ComicDetailModalDialog(
                             ) {
                                 Icon(
                                     imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                    contentDescription = "Favoritar",
+                                    contentDescription = stringResource(R.string.favorite_cd),
                                     tint = if (comic.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -606,7 +623,7 @@ fun ComicDetailModalDialog(
 
                         if (comic.metadata.series.isNotBlank()) {
                             Text(
-                                text = "Série: ${comic.metadata.series}",
+                                text = stringResource(R.string.dialog_series, comic.metadata.series),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -614,14 +631,18 @@ fun ComicDetailModalDialog(
 
                         if (comic.metadata.publisher.isNotBlank()) {
                             Text(
-                                text = "Editora: ${comic.metadata.publisher}",
+                                text = stringResource(R.string.dialog_publisher, comic.metadata.publisher),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
                         Text(
-                            text = "${comic.totalPages} páginas  •  ${(comic.progressPercent * 100).toInt()}% lido",
+                            text = stringResource(
+                                R.string.dialog_stats_format,
+                                comic.totalPages,
+                                (comic.progressPercent * 100).toInt()
+                            ),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -639,62 +660,69 @@ fun ComicDetailModalDialog(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Internal Storage Path / Location
                     DetailInfoRow(
-                        label = "Armazenamento Interno",
+                        label = stringResource(R.string.dialog_storage_location),
                         value = comic.uriString,
                         isMonospace = true
                     )
 
                     DetailInfoRow(
-                        label = "Nome do Arquivo",
+                        label = stringResource(R.string.dialog_filename),
                         value = comic.fileName
                     )
 
                     DetailInfoRow(
-                        label = "Tamanho do Arquivo",
+                        label = stringResource(R.string.dialog_file_size),
                         value = "$fileSizeFormatted (${comic.fileSizeBytes} bytes)"
                     )
 
                     DetailInfoRow(
-                        label = "Página Atual",
-                        value = "${comic.lastReadPage + 1} de ${comic.totalPages}"
+                        label = stringResource(R.string.dialog_current_page),
+                        value = stringResource(
+                            R.string.dialog_page_progress_format,
+                            comic.lastReadPage + 1,
+                            comic.totalPages
+                        )
                     )
 
                     DetailInfoRow(
-                        label = "Status",
+                        label = stringResource(R.string.dialog_status),
                         value = when {
-                            comic.isFinished -> "Concluído"
-                            comic.lastReadPage > 0 -> "Em Leitura"
-                            else -> "Não Lido"
+                            comic.isFinished -> stringResource(R.string.status_completed)
+                            comic.lastReadPage > 0 -> stringResource(R.string.status_reading)
+                            else -> stringResource(R.string.status_unread)
                         }
                     )
 
                     DetailInfoRow(
-                        label = "Modo de Leitura",
-                        value = if (comic.metadata.isManga) "Mangá (Direita para Esquerda - RTL)" else "Ocidental (Esquerda para Direita - LTR)"
+                        label = stringResource(R.string.dialog_reading_mode),
+                        value = if (comic.metadata.isManga) {
+                            stringResource(R.string.reading_mode_manga_desc)
+                        } else {
+                            stringResource(R.string.reading_mode_western_desc)
+                        }
                     )
 
                     if (comic.metadata.writer.isNotBlank()) {
-                        DetailInfoRow(label = "Roteirista", value = comic.metadata.writer)
+                        DetailInfoRow(label = stringResource(R.string.dialog_writer), value = comic.metadata.writer)
                     }
 
                     if (comic.metadata.penciller.isNotBlank()) {
-                        DetailInfoRow(label = "Desenhista", value = comic.metadata.penciller)
+                        DetailInfoRow(label = stringResource(R.string.dialog_penciller), value = comic.metadata.penciller)
                     }
 
                     if (comic.metadata.genre.isNotBlank()) {
-                        DetailInfoRow(label = "Gênero", value = comic.metadata.genre)
+                        DetailInfoRow(label = stringResource(R.string.dialog_genre), value = comic.metadata.genre)
                     }
 
                     if (comic.metadata.year != null) {
-                        DetailInfoRow(label = "Ano de Lançamento", value = comic.metadata.year.toString())
+                        DetailInfoRow(label = stringResource(R.string.dialog_release_year), value = comic.metadata.year.toString())
                     }
 
                     if (comic.metadata.summary.isNotBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Sinopse",
+                            text = stringResource(R.string.dialog_synopsis),
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -708,7 +736,7 @@ fun ComicDetailModalDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Action Buttons: Ler Agora e Fechar
+                // Action Buttons: Read Now and Close
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -718,7 +746,7 @@ fun ComicDetailModalDialog(
                         modifier = Modifier.weight(1f),
                         shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
                     ) {
-                        Text("Fechar")
+                        Text(stringResource(R.string.btn_close))
                     }
 
                     Button(
@@ -728,7 +756,7 @@ fun ComicDetailModalDialog(
                     ) {
                         Icon(Icons.Default.AutoStories, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Ler Agora")
+                        Text(stringResource(R.string.btn_read_now))
                     }
                 }
             }

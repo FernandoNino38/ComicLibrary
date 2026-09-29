@@ -29,7 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.comiclibrary.R
 import com.example.comiclibrary.data.model.ComicBook
 import com.example.comiclibrary.ui.library.ComicDetailPane
 import com.example.comiclibrary.ui.library.ComicLibraryScreen
@@ -78,14 +80,14 @@ fun AdaptiveAppScaffold(
                 item(
                     selected = currentDestination == AppDestination.LIBRARY,
                     onClick = { currentDestination = AppDestination.LIBRARY },
-                    icon = { Icon(Icons.Default.AutoStories, contentDescription = "Biblioteca") },
-                    label = { Text("Biblioteca") }
+                    icon = { Icon(Icons.Default.AutoStories, contentDescription = stringResource(R.string.nav_library)) },
+                    label = { Text(stringResource(R.string.nav_library)) }
                 )
                 item(
                     selected = currentDestination == AppDestination.SETTINGS,
                     onClick = { currentDestination = AppDestination.SETTINGS },
-                    icon = { Icon(Icons.Default.Tune, contentDescription = "Ajustes") },
-                    label = { Text("Ajustes") }
+                    icon = { Icon(Icons.Default.Tune, contentDescription = stringResource(R.string.nav_settings)) },
+                    label = { Text(stringResource(R.string.nav_settings)) }
                 )
             },
             modifier = Modifier.fillMaxSize()
