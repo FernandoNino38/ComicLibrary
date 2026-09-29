@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -63,6 +64,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -308,11 +310,10 @@ fun ComicLibraryScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 32.dp, horizontal = 16.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.AutoStories,
+                            Image(
+                                painter = painterResource(R.drawable.ic_comic_library_logo),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(64.dp)
+                                modifier = Modifier.size(80.dp)
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
