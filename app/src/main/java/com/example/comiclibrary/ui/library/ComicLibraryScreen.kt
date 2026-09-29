@@ -4,10 +4,14 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -134,7 +138,7 @@ fun ComicLibraryScreen(
                 .padding(horizontal = 24.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "Biblioteca CBZ",
+                text = "Biblioteca",
                 style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -237,10 +241,12 @@ fun ComicLibraryScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Filter Chips
+            // Filter Chips (Horizontally scrollable to prevent "Mangá" and other chips from being clipped)
             if (comics.isNotEmpty()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     listOf("Todos", "Favoritos", "Lendo", "Concluídos", "Mangá").forEach { filter ->
@@ -248,7 +254,7 @@ fun ComicLibraryScreen(
                             selected = selectedFilter == filter,
                             onClick = { selectedFilter = filter },
                             label = { Text(filter, fontSize = 13.sp) },
-                            shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f),
+                            shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.6f),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                 selectedLabelColor = MaterialTheme.colorScheme.primary
@@ -378,126 +384,117 @@ private fun ComicFocusBlockItem(
     onToggleFavorite: () -> Unit
 ) {
     val context = LocalContext.current
-    val squircle = SquircleShape(cornerRadiusDp = 20.dp, smoothing = 0.6f)
 
-    FocusBlock(
-        cornerRadius = 20.dp,
-        containerColor = if (isSelected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        },
-        borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // Comic Cover Preview with Squircle corners
-            Box(
+        // Comic Cover Preview - Completely square, no rounded corners, no external border
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(0.72f)
+                .clip(RectangleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+        ) {
+            if (comic.coverPath != null && File(comic.coverPath).exists()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(File(comic.coverPath))
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = comic.metadata.displayTitle,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Fallback cover placeholder with title
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = comic.metadata.displayTitle.take(30),
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
+            // Favorite icon button on top right of cover
+            IconButton(
+                onClick = onToggleFavorite,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+            ) {
+                Icon(
+                    imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorito",
+                    tint = if (comic.isFavorite) Color.Red else Color.White.copy(alpha = 0.8f)
+                )
+            }
+
+            // Manga badge if RTL
+            if (comic.metadata.isManga) {
+                Surface(
+                    color = Color.Black.copy(alpha = 0.85f),
+                    shape = RectangleShape,
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(6.dp)
+                ) {
+                    Text(
+                        text = "MANGÁ",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = Color(0xFFFF4081),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Reading Progress Bar
+        if (comic.totalPages > 0) {
+            LinearProgressIndicator(
+                progress = { comic.progressPercent },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.72f)
-                    .clip(squircle)
-                    .background(MaterialTheme.colorScheme.surface)
-            ) {
-                if (comic.coverPath != null && File(comic.coverPath).exists()) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(File(comic.coverPath))
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = comic.metadata.displayTitle,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    // Fallback cover placeholder with title
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = comic.metadata.displayTitle.take(30),
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(12.dp)
-                        )
-                    }
-                }
-
-                // Favorite icon button on top right of cover
-                IconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                ) {
-                    Icon(
-                        imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorito",
-                        tint = if (comic.isFavorite) Color.Red else Color.White.copy(alpha = 0.8f)
-                    )
-                }
-
-                // Manga badge if RTL
-                if (comic.metadata.isManga) {
-                    Surface(
-                        color = Color.Black.copy(alpha = 0.75f),
-                        shape = SquircleShape(cornerRadiusDp = 8.dp, smoothing = 0.6f),
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(8.dp)
-                    ) {
-                        Text(
-                            text = "MANGÁ",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = Color(0xFFFF4081),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Reading Progress Bar
-            if (comic.totalPages > 0) {
-                LinearProgressIndicator(
-                    progress = { comic.progressPercent },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp)
-                        .clip(SquircleShape(cornerRadiusDp = 2.dp, smoothing = 0.6f)),
-                    color = if (comic.isFinished) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            // Title & Series
-            Text(
-                text = comic.metadata.displayTitle,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                    .height(3.dp)
+                    .clip(RectangleShape),
+                color = if (comic.isFinished) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
-
-            // Subtitle
-            val subtitle = buildString {
-                if (comic.metadata.year != null) append("${comic.metadata.year} • ")
-                append("${comic.totalPages} páginas")
-            }
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Spacer(modifier = Modifier.height(6.dp))
         }
+
+        // Title & Series
+        Text(
+            text = comic.metadata.displayTitle,
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        // Subtitle
+        val subtitle = buildString {
+            if (comic.metadata.year != null) append("${comic.metadata.year} • ")
+            append("${comic.totalPages} páginas")
+        }
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

@@ -33,7 +33,6 @@ import kotlinx.coroutines.launch
 
 enum class AppDestination(val label: String) {
     LIBRARY("Biblioteca"),
-    FAVORITES("Favoritos"),
     SETTINGS("Ajustes")
 }
 
@@ -89,12 +88,6 @@ fun AdaptiveAppScaffold(
                 label = { Text("Biblioteca") }
             )
             item(
-                selected = currentDestination == AppDestination.FAVORITES,
-                onClick = { currentDestination = AppDestination.FAVORITES },
-                icon = { Icon(Icons.Default.Favorite, contentDescription = "Favoritos") },
-                label = { Text("Favoritos") }
-            )
-            item(
                 selected = currentDestination == AppDestination.SETTINGS,
                 onClick = { currentDestination = AppDestination.SETTINGS },
                 icon = { Icon(Icons.Default.Tune, contentDescription = "Ajustes") },
@@ -110,54 +103,6 @@ fun AdaptiveAppScaffold(
                     listPane = {
                         ComicLibraryScreen(
                             comics = state.comics,
-                            isLoading = state.isLoading,
-                            importProgress = state.importProgress,
-                            selectedComicId = currentComicId,
-                            onComicClick = { comic ->
-                                libraryViewModel.processIntent(LibraryIntent.SelectComic(comic.id))
-                                scope.launch {
-                                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, comic.id)
-                                }
-                            },
-                            onImportUris = { uris ->
-                                libraryViewModel.processIntent(LibraryIntent.ImportFiles(uris))
-                            },
-                            onImportFolder = { treeUri ->
-                                libraryViewModel.processIntent(LibraryIntent.ImportFolder(treeUri))
-                            },
-                            onToggleFavorite = { comicId ->
-                                libraryViewModel.processIntent(LibraryIntent.ToggleFavorite(comicId))
-                            }
-                        )
-                    },
-                    detailPane = {
-                        ComicDetailPane(
-                            comic = selectedComic,
-                            onReadClick = { comicToRead ->
-                                activeReadingComic = comicToRead
-                            },
-                            onToggleFavorite = { comicId ->
-                                libraryViewModel.processIntent(LibraryIntent.ToggleFavorite(comicId))
-                            },
-                            onDeleteComic = { comicId ->
-                                libraryViewModel.processIntent(LibraryIntent.DeleteComic(comicId))
-                                if (currentComicId == comicId) {
-                                    if (navigator.canNavigateBack()) {
-                                        scope.launch { navigator.navigateBack() }
-                                    }
-                                }
-                            }
-                        )
-                    }
-                )
-            }
-            AppDestination.FAVORITES -> {
-                val favoriteComics = state.comics.filter { it.isFavorite }
-                NavigableListDetailPaneScaffold(
-                    navigator = navigator,
-                    listPane = {
-                        ComicLibraryScreen(
-                            comics = favoriteComics,
                             isLoading = state.isLoading,
                             importProgress = state.importProgress,
                             selectedComicId = currentComicId,

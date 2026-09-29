@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -97,7 +98,7 @@ fun ComicDetailPane(
                     modifier = Modifier
                         .width(130.dp)
                         .aspectRatio(0.72f)
-                        .clip(SquircleShape(cornerRadiusDp = 16.dp, smoothing = 0.6f))
+                        .clip(RectangleShape)
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
                     if (comic.coverPath != null && File(comic.coverPath).exists()) {
