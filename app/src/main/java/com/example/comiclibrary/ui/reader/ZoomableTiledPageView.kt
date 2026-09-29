@@ -47,7 +47,9 @@ fun ZoomableTiledPageView(
     bitmap: Bitmap?,
     isLoading: Boolean,
     pageIndex: Int,
-    onToggleChrome: () -> Unit,
+    onTapLeft: () -> Unit,
+    onTapCenter: () -> Unit,
+    onTapRight: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
@@ -89,7 +91,7 @@ fun ZoomableTiledPageView(
 
         // Gesture handling modifier
         val gestureModifier = Modifier
-            // 1. Double tap & Single tap
+            // 1. Double tap & 3-zone Tap (Left, Center, Right)
             .pointerInput(pageIndex) {
                 detectTapGestures(
                     onDoubleTap = {
@@ -101,8 +103,18 @@ fun ZoomableTiledPageView(
                             targetScale = 2.5f
                         }
                     },
-                    onTap = {
-                        onToggleChrome()
+                    onTap = { offset ->
+                        if (targetScale > 1.05f) {
+                            // If zoomed in, tap toggles chrome so user can still access UI
+                            onTapCenter()
+                        } else {
+                            val screenWidth = size.width
+                            when {
+                                offset.x < screenWidth * 0.30f -> onTapLeft()
+                                offset.x > screenWidth * 0.70f -> onTapRight()
+                                else -> onTapCenter()
+                            }
+                        }
                     }
                 )
             }

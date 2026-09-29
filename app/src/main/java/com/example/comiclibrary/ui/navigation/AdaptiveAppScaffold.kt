@@ -2,11 +2,13 @@ package com.example.comiclibrary.ui.navigation
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -141,8 +143,16 @@ fun AdaptiveAppScaffold(
         // Full-screen immersive Comic Reader with expand-from-center scale animation
         AnimatedVisibility(
             visible = activeReadingComic != null,
-            enter = fadeIn(animationSpec = tween(280)) + scaleIn(initialScale = 0.82f, animationSpec = tween(320)),
-            exit = fadeOut(animationSpec = tween(220)) + scaleOut(targetScale = 0.82f, animationSpec = tween(220)),
+            enter = fadeIn(animationSpec = tween(150)) + scaleIn(
+                initialScale = 0.18f,
+                transformOrigin = TransformOrigin.Center,
+                animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+            ),
+            exit = fadeOut(animationSpec = tween(180)) + scaleOut(
+                targetScale = 0.18f,
+                transformOrigin = TransformOrigin.Center,
+                animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
             activeReadingComic?.let { comic ->

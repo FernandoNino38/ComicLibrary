@@ -3,6 +3,8 @@ package com.example.comiclibrary.ui.reader
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -31,9 +33,9 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SuggestionChip
@@ -55,6 +57,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +67,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.comiclibrary.data.model.ComicBook
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.PageScrubber
@@ -71,15 +77,20 @@ import com.example.comiclibrary.ui.reader.mvi.ReaderError
 import com.example.comiclibrary.ui.reader.mvi.ReaderIntent
 import com.example.comiclibrary.ui.reader.mvi.ReaderState
 import com.example.comiclibrary.ui.theme.MotionTokens
+import java.io.File
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 /**
- * Native High-Performance CBZ Reader Screen (v0.3).
+ * Native High-Performance CBZ Reader Screen (v0.4).
  * Refinements:
- * - 3D Page-curl leaf animation synchronously tracking user's finger during drag.
- * - Docked edge-to-edge full-width bottom bar (no floating pill).
- * - MVI Architecture, Material Design 3 Tonal Elevation, Predictive Back.
+ * - Direct cover display during initialization for instant visual continuity.
+ * - 3-zone touch controls:
+ *   * Tap Right: Smooth animated leaf page-turn forward.
+ *   * Tap Left: Smooth animated leaf page-turn backward.
+ *   * Tap Center: Toggle Chrome (top header and bottom scrubber bar).
+ * - Smooth 3D paper leaf-curl animation running purely in draw/graphicsLayer phase.
+ * - Full-width docked bottom bar (edge-to-edge).
  */
 @Composable
 fun ComicReaderScreen(
@@ -128,6 +139,7 @@ fun ComicReaderScreen(
         when (val currentState = state) {
             is ReaderState.Loading -> {
                 ReaderLoadingView(
+                    comic = comic,
                     progress = currentState.progress,
                     message = currentState.message,
                     onBack = onBack
@@ -155,48 +167,42 @@ fun ComicReaderScreen(
 
 @Composable
 private fun ReaderLoadingView(
+    comic: ComicBook,
     progress: Float,
     message: String,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
-        FocusBlock(
-            modifier = Modifier
-                .padding(32.dp)
-                .fillMaxWidth(0.85f),
-            elevation = 6.dp
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(48.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 4.dp
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedButton(onClick = onBack) {
-                    Text("Cancelar")
-                }
-            }
+        // Display actual comic cover from the start so opening animation has visual substance
+        if (comic.coverPath != null && File(comic.coverPath).exists()) {
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(File(comic.coverPath))
+                    .crossfade(true)
+                    .build(),
+                contentDescription = comic.metadata.displayTitle,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
         }
+
+        // Subtle bottom progress bar
+        LinearProgressIndicator(
+            progress = { if (progress > 0f) progress else 0.35f },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(3.dp),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = Color.Transparent
+        )
     }
 }
 
@@ -301,9 +307,63 @@ private fun ReaderReadyView(
     }
 
     val readingDirection = if (state.isManga) LayoutDirection.Rtl else LayoutDirection.Ltr
+    val isManga = state.isManga
+
+    // Smooth page flip animations on tap
+    val onTapLeft: () -> Unit = {
+        if (!isManga) {
+            // Western (LTR): Tap left turns to PREVIOUS page with smooth leaf-curl animation
+            if (pagerState.currentPage > 0) {
+                scope.launch {
+                    pagerState.animateScrollToPage(
+                        page = pagerState.currentPage - 1,
+                        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                    )
+                }
+            }
+        } else {
+            // Manga (RTL): Tap left turns to NEXT page with smooth leaf-curl animation
+            if (pagerState.currentPage < totalPages - 1) {
+                scope.launch {
+                    pagerState.animateScrollToPage(
+                        page = pagerState.currentPage + 1,
+                        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                    )
+                }
+            }
+        }
+    }
+
+    val onTapRight: () -> Unit = {
+        if (!isManga) {
+            // Western (LTR): Tap right turns to NEXT page with smooth leaf-curl animation
+            if (pagerState.currentPage < totalPages - 1) {
+                scope.launch {
+                    pagerState.animateScrollToPage(
+                        page = pagerState.currentPage + 1,
+                        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                    )
+                }
+            }
+        } else {
+            // Manga (RTL): Tap right turns to PREVIOUS page with smooth leaf-curl animation
+            if (pagerState.currentPage > 0) {
+                scope.launch {
+                    pagerState.animateScrollToPage(
+                        page = pagerState.currentPage - 1,
+                        animationSpec = tween(durationMillis = 420, easing = FastOutSlowInEasing)
+                    )
+                }
+            }
+        }
+    }
+
+    val onTapCenter: () -> Unit = {
+        onIntent(ReaderIntent.ToggleChrome)
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 1. Paged Comic Content with 3D Leaf/Page-Curl animation following finger gesture
+        // 1. Paged Comic Content with 3D Leaf/Page-Curl animation following finger gestures and taps
         CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {
             HorizontalPager(
                 state = pagerState,
@@ -311,14 +371,12 @@ private fun ReaderReadyView(
                 beyondViewportPageCount = 1
             ) { pageIndex ->
                 val bitmap = cachedBitmaps[pageIndex]
-                val pageOffset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction)
-                val absOffset = abs(pageOffset).coerceIn(0f, 1f)
-                val isManga = state.isManga
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
+                            val pageOffset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction)
                             cameraDistance = 18f * density
                             if (pageOffset < -1.1f || pageOffset > 1.1f) {
                                 alpha = 0f
@@ -340,17 +398,22 @@ private fun ReaderReadyView(
                         bitmap = bitmap,
                         isLoading = bitmap == null,
                         pageIndex = pageIndex,
-                        onToggleChrome = { onIntent(ReaderIntent.ToggleChrome) }
+                        onTapLeft = onTapLeft,
+                        onTapCenter = onTapCenter,
+                        onTapRight = onTapRight
                     )
 
-                    // Dynamic paper leaf shadow that responds to finger dragging
-                    if (absOffset > 0.01f) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = (absOffset * 0.45f).coerceIn(0f, 0.6f)))
-                        )
-                    }
+                    // Dynamic paper leaf shadow that animates purely in graphicsLayer draw phase
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                val pageOffset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction)
+                                val absOffset = abs(pageOffset).coerceIn(0f, 1f)
+                                alpha = (absOffset * 0.45f).coerceIn(0f, 0.6f)
+                            }
+                            .background(Color.Black)
+                    )
                 }
             }
         }
@@ -448,7 +511,12 @@ private fun ReaderReadyView(
                         currentPage = pagerState.currentPage,
                         totalPages = totalPages,
                         onPageSelected = { targetPage ->
-                            scope.launch { pagerState.scrollToPage(targetPage) }
+                            scope.launch {
+                                pagerState.animateScrollToPage(
+                                    page = targetPage,
+                                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                                )
+                            }
                         }
                     )
 
@@ -460,7 +528,12 @@ private fun ReaderReadyView(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = {
-                            scope.launch { pagerState.animateScrollToPage(0) }
+                            scope.launch {
+                                pagerState.animateScrollToPage(
+                                    page = 0,
+                                    animationSpec = tween(durationMillis = 450, easing = FastOutSlowInEasing)
+                                )
+                            }
                         }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.MenuBook,
@@ -476,7 +549,12 @@ private fun ReaderReadyView(
                         )
 
                         IconButton(onClick = {
-                            scope.launch { pagerState.animateScrollToPage(totalPages - 1) }
+                            scope.launch {
+                                pagerState.animateScrollToPage(
+                                    page = totalPages - 1,
+                                    animationSpec = tween(durationMillis = 450, easing = FastOutSlowInEasing)
+                                )
+                            }
                         }) {
                             Icon(
                                 Icons.Default.AutoStories,
