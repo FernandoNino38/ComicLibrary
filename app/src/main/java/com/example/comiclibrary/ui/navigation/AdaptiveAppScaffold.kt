@@ -1,10 +1,16 @@
 package com.example.comiclibrary.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -63,89 +69,93 @@ fun AdaptiveAppScaffold(
         scope.launch { navigator.navigateBack() }
     }
 
-    // If currently in reader mode, display full-screen immersive comic reader
-    if (activeReadingComic != null) {
-        ComicReaderScreen(
-            comic = activeReadingComic!!,
-            onBack = { activeReadingComic = null },
-            onProgressUpdate = { pageIndex ->
-                libraryViewModel.processIntent(
-                    LibraryIntent.UpdateProgress(activeReadingComic!!.id, pageIndex)
+    Box(modifier = modifier.fillMaxSize()) {
+        // Adaptive Navigation Suite: Bottom Bar on Phones, Navigation Rail on Tablets/Foldables
+        NavigationSuiteScaffold(
+            navigationSuiteItems = {
+                item(
+                    selected = currentDestination == AppDestination.LIBRARY,
+                    onClick = { currentDestination = AppDestination.LIBRARY },
+                    icon = { Icon(Icons.Default.AutoStories, contentDescription = "Biblioteca") },
+                    label = { Text("Biblioteca") }
+                )
+                item(
+                    selected = currentDestination == AppDestination.SETTINGS,
+                    onClick = { currentDestination = AppDestination.SETTINGS },
+                    icon = { Icon(Icons.Default.Tune, contentDescription = "Ajustes") },
+                    label = { Text("Ajustes") }
                 )
             },
             modifier = Modifier.fillMaxSize()
-        )
-        return
-    }
-
-    // Adaptive Navigation Suite: Bottom Bar on Phones, Navigation Rail on Tablets/Foldables
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            item(
-                selected = currentDestination == AppDestination.LIBRARY,
-                onClick = { currentDestination = AppDestination.LIBRARY },
-                icon = { Icon(Icons.Default.AutoStories, contentDescription = "Biblioteca") },
-                label = { Text("Biblioteca") }
-            )
-            item(
-                selected = currentDestination == AppDestination.SETTINGS,
-                onClick = { currentDestination = AppDestination.SETTINGS },
-                icon = { Icon(Icons.Default.Tune, contentDescription = "Ajustes") },
-                label = { Text("Ajustes") }
-            )
-        },
-        modifier = modifier.fillMaxSize()
-    ) {
-        when (currentDestination) {
-            AppDestination.LIBRARY -> {
-                NavigableListDetailPaneScaffold(
-                    navigator = navigator,
-                    listPane = {
-                        ComicLibraryScreen(
-                            comics = state.comics,
-                            isLoading = state.isLoading,
-                            importProgress = state.importProgress,
-                            selectedComicId = currentComicId,
-                            onComicClick = { comic ->
-                                libraryViewModel.processIntent(LibraryIntent.SelectComic(comic.id))
-                                scope.launch {
-                                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, comic.id)
+        ) {
+            when (currentDestination) {
+                AppDestination.LIBRARY -> {
+                    NavigableListDetailPaneScaffold(
+                        navigator = navigator,
+                        listPane = {
+                            ComicLibraryScreen(
+                                comics = state.comics,
+                                isLoading = state.isLoading,
+                                importProgress = state.importProgress,
+                                selectedComicId = currentComicId,
+                                onComicClick = { comic ->
+                                    libraryViewModel.processIntent(LibraryIntent.SelectComic(comic.id))
+                                    // Direct open reading without intermediate screen
+                                    activeReadingComic = comic
+                                },
+                                onToggleFavorite = { comicId ->
+                                    libraryViewModel.processIntent(LibraryIntent.ToggleFavorite(comicId))
+                                },
+                                onNavigateToSettings = {
+                                    currentDestination = AppDestination.SETTINGS
                                 }
-                            },
-                            onImportUris = { uris ->
-                                libraryViewModel.processIntent(LibraryIntent.ImportFiles(uris))
-                            },
-                            onImportFolder = { treeUri ->
-                                libraryViewModel.processIntent(LibraryIntent.ImportFolder(treeUri))
-                            },
-                            onToggleFavorite = { comicId ->
-                                libraryViewModel.processIntent(LibraryIntent.ToggleFavorite(comicId))
-                            }
-                        )
-                    },
-                    detailPane = {
-                        ComicDetailPane(
-                            comic = selectedComic,
-                            onReadClick = { comicToRead ->
-                                activeReadingComic = comicToRead
-                            },
-                            onToggleFavorite = { comicId ->
-                                libraryViewModel.processIntent(LibraryIntent.ToggleFavorite(comicId))
-                            },
-                            onDeleteComic = { comicId ->
-                                libraryViewModel.processIntent(LibraryIntent.DeleteComic(comicId))
-                                if (currentComicId == comicId) {
-                                    if (navigator.canNavigateBack()) {
-                                        scope.launch { navigator.navigateBack() }
+                            )
+                        },
+                        detailPane = {
+                            ComicDetailPane(
+                                comic = selectedComic,
+                                onReadClick = { comicToRead ->
+                                    activeReadingComic = comicToRead
+                                },
+                                onToggleFavorite = { comicId ->
+                                    libraryViewModel.processIntent(LibraryIntent.ToggleFavorite(comicId))
+                                },
+                                onDeleteComic = { comicId ->
+                                    libraryViewModel.processIntent(LibraryIntent.DeleteComic(comicId))
+                                    if (currentComicId == comicId) {
+                                        if (navigator.canNavigateBack()) {
+                                            scope.launch { navigator.navigateBack() }
+                                        }
                                     }
                                 }
-                            }
-                        )
-                    }
-                )
+                            )
+                        }
+                    )
+                }
+                AppDestination.SETTINGS -> {
+                    SettingsSupportingPane(libraryViewModel = libraryViewModel)
+                }
             }
-            AppDestination.SETTINGS -> {
-                SettingsSupportingPane()
+        }
+
+        // Full-screen immersive Comic Reader with expand-from-center scale animation
+        AnimatedVisibility(
+            visible = activeReadingComic != null,
+            enter = fadeIn(animationSpec = tween(280)) + scaleIn(initialScale = 0.82f, animationSpec = tween(320)),
+            exit = fadeOut(animationSpec = tween(220)) + scaleOut(targetScale = 0.82f, animationSpec = tween(220)),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            activeReadingComic?.let { comic ->
+                ComicReaderScreen(
+                    comic = comic,
+                    onBack = { activeReadingComic = null },
+                    onProgressUpdate = { pageIndex ->
+                        libraryViewModel.processIntent(
+                            LibraryIntent.UpdateProgress(comic.id, pageIndex)
+                        )
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

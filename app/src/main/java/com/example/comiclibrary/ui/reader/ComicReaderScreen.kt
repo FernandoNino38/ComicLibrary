@@ -38,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -51,6 +52,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
@@ -68,12 +71,15 @@ import com.example.comiclibrary.ui.reader.mvi.ReaderError
 import com.example.comiclibrary.ui.reader.mvi.ReaderIntent
 import com.example.comiclibrary.ui.reader.mvi.ReaderState
 import com.example.comiclibrary.ui.theme.MotionTokens
+import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 /**
- * Native High-Performance CBZ Reader Screen.
- * Fully refactored to MVI Architecture, Material Design 3 Tonal Elevation,
- * Spring Physics, and Strict Memory Budgeting (LRU sliding window of +/- 3 pages).
+ * Native High-Performance CBZ Reader Screen (v0.3).
+ * Refinements:
+ * - 3D Page-curl leaf animation synchronously tracking user's finger during drag.
+ * - Docked edge-to-edge full-width bottom bar (no floating pill).
+ * - MVI Architecture, Material Design 3 Tonal Elevation, Predictive Back.
  */
 @Composable
 fun ComicReaderScreen(
@@ -297,7 +303,7 @@ private fun ReaderReadyView(
     val readingDirection = if (state.isManga) LayoutDirection.Rtl else LayoutDirection.Ltr
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // 1. Paged Comic Content with LRU Memory Window
+        // 1. Paged Comic Content with 3D Leaf/Page-Curl animation following finger gesture
         CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {
             HorizontalPager(
                 state = pagerState,
@@ -305,12 +311,47 @@ private fun ReaderReadyView(
                 beyondViewportPageCount = 1
             ) { pageIndex ->
                 val bitmap = cachedBitmaps[pageIndex]
-                ZoomableTiledPageView(
-                    bitmap = bitmap,
-                    isLoading = bitmap == null,
-                    pageIndex = pageIndex,
-                    onToggleChrome = { onIntent(ReaderIntent.ToggleChrome) }
-                )
+                val pageOffset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction)
+                val absOffset = abs(pageOffset).coerceIn(0f, 1f)
+                val isManga = state.isManga
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            cameraDistance = 18f * density
+                            if (pageOffset < -1.1f || pageOffset > 1.1f) {
+                                alpha = 0f
+                            } else {
+                                alpha = 1f
+                                if (!isManga) {
+                                    // LTR (Western): Spine is pinned on the Left (0f, 0.5f)
+                                    transformOrigin = TransformOrigin(if (pageOffset < 0f) 0f else 1f, 0.5f)
+                                    rotationY = (pageOffset * 50f).coerceIn(-75f, 75f)
+                                } else {
+                                    // RTL (Manga): Spine is pinned on the Right (1f, 0.5f)
+                                    transformOrigin = TransformOrigin(if (pageOffset > 0f) 1f else 0f, 0.5f)
+                                    rotationY = (-pageOffset * 50f).coerceIn(-75f, 75f)
+                                }
+                            }
+                        }
+                ) {
+                    ZoomableTiledPageView(
+                        bitmap = bitmap,
+                        isLoading = bitmap == null,
+                        pageIndex = pageIndex,
+                        onToggleChrome = { onIntent(ReaderIntent.ToggleChrome) }
+                    )
+
+                    // Dynamic paper leaf shadow that responds to finger dragging
+                    if (absOffset > 0.01f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = (absOffset * 0.45f).coerceIn(0f, 0.6f)))
+                        )
+                    }
+                }
             }
         }
 
@@ -382,21 +423,25 @@ private fun ReaderReadyView(
             }
         }
 
-        // 3. Fading Chrome: Bottom Tonal Bar with Harmonic Spring Animation
+        // 3. Fading Chrome: Bottom Edge-to-Edge Docked Bar (Not a pill, covers entire bottom)
         AnimatedVisibility(
             visible = state.isChromeVisible,
             enter = fadeIn(MotionTokens.MicroInteraction) + slideInVertically(MotionTokens.PanelOffsetTransition) { it },
             exit = fadeOut(MotionTokens.MicroInteraction) + slideOutVertically(MotionTokens.PanelOffsetTransition) { it },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            TonalFloatingBar(
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f),
+                tonalElevation = 8.dp,
+                shadowElevation = 16.dp,
+                shape = RectangleShape
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     PageScrubber(
@@ -410,8 +455,8 @@ private fun ReaderReadyView(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = {
@@ -423,6 +468,12 @@ private fun ReaderReadyView(
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+
+                        Text(
+                            text = "${pagerState.currentPage + 1} de $totalPages",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
                         IconButton(onClick = {
                             scope.launch { pagerState.animateScrollToPage(totalPages - 1) }

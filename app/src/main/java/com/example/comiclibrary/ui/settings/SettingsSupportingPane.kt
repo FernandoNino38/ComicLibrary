@@ -1,5 +1,7 @@
 package com.example.comiclibrary.ui.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,63 +13,167 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CleaningServices
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.SquircleShape
+import com.example.comiclibrary.ui.library.LibraryViewModel
+import com.example.comiclibrary.ui.library.mvi.LibraryIntent
 
 /**
- * Supporting Pane for Settings and System Diagnostics,
- * reflecting Android 17 R8, SAF Scoped Storage, and Memory Observability features.
+ * Supporting Pane for Settings, Storage Import, and System Diagnostics.
  */
 @Composable
 fun SettingsSupportingPane(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    libraryViewModel: LibraryViewModel = viewModel()
 ) {
-    val context = LocalContext.current
-    var isAMOLEDDarkTheme by remember { mutableStateOf(true) }
-    var memoryStatsText by remember { mutableStateOf("Heap: Normal • Triggers: Armed") }
+    val state by libraryViewModel.state.collectAsState()
+    var memoryStatsText by remember { mutableStateOf("Heap: Normal • Triggers: Armados") }
+
+    // Multi-file picker (OpenMultipleDocuments)
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            libraryViewModel.processIntent(LibraryIntent.ImportFiles(uris))
+        }
+    }
+
+    // Folder picker (OpenDocumentTree)
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { treeUri ->
+        if (treeUri != null) {
+            libraryViewModel.processIntent(LibraryIntent.ImportFolder(treeUri))
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Engine Settings",
+            text = "Ajustes",
             style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onBackground
         )
 
         Text(
-            text = "Hardware Acceleration & Observability",
+            text = "Gerenciamento de Biblioteca & Diagnóstico",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Focus Block: Importação de Arquivos e Pastas
+        FocusBlock(
+            cornerRadius = 20.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.AutoMirrored.Filled.LibraryBooks, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Importar Quadrinhos",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+
+                Text(
+                    text = "Adicione arquivos .cbz ou .zip individuais ou selecione diretórios inteiros para indexação em segundo plano.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Progress Banner se estiver importando
+                if (state.importProgress != null) {
+                    val (current, total) = state.importProgress!!
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "Importando ($current de $total)...",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        LinearProgressIndicator(
+                            progress = { if (total > 0) current.toFloat() / total.toFloat() else 0f },
+                            modifier = Modifier.fillMaxWidth().height(4.dp)
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        onClick = {
+                            filePickerLauncher.launch(arrayOf("application/x-cbz", "application/zip", "application/octet-stream", "*/*"))
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Arquivos", fontSize = 13.sp)
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            folderPickerLauncher.launch(null)
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
+                    ) {
+                        Icon(Icons.Default.FolderOpen, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Pasta", fontSize = 13.sp)
+                    }
+                }
+            }
+        }
 
         // Focus Block: Memory & Subsampling Architecture
         FocusBlock(
@@ -77,14 +183,15 @@ fun SettingsSupportingPane(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Memory, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = " Bitmap Tiling & OOM Guard",
+                        text = "Bitmap Tiling & OOM Guard",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
 
                 Text(
-                    text = "BitmapRegionDecoder actively fragments high-resolution images (>2048px) into localized sub-rectangles, enforcing strict bounds to prevent OutOfMemoryError.",
+                    text = "BitmapRegionDecoder fragmenta páginas de ultra-alta resolução em sub-ladrilhos com bounds restritos, prevenindo estouro de memória RAM.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -105,21 +212,22 @@ fun SettingsSupportingPane(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = " Scoped Storage & SAF",
+                        text = "Scoped Storage & SAF",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                 }
 
                 Text(
-                    text = "Strict Storage Access Framework compliance via ParcelFileDescriptor and O(1) random-access ZipFile resolution.",
+                    text = "Acesso seguro aos arquivos respeitando o isolamento do Android via Storage Access Framework e ZipFile com O(1) de acesso.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // Focus Block: Memory Trim Simulation
+        // Focus Block: Clear Decoded Cache
         FocusBlock(
             cornerRadius = 20.dp,
             modifier = Modifier.fillMaxWidth()
@@ -135,7 +243,7 @@ fun SettingsSupportingPane(
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        text = "Recycle bitmap tile allocations immediately",
+                        text = "Recicla alocações de páginas da memória imediatamente",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -144,7 +252,7 @@ fun SettingsSupportingPane(
                 Button(
                     onClick = {
                         System.gc()
-                        memoryStatsText = "Heap Trimmed: GC invoked • Bitmaps recycled"
+                        memoryStatsText = "Heap Limpo: Coleta de Lixo executada"
                     },
                     shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.6f),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceTint)
@@ -179,7 +287,7 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "0.2 (Build 2)",
+                        text = "0.3 (Build 3)",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.primary
                     )
