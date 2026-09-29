@@ -56,6 +56,11 @@
     <string name="reader_mode_western_title">Modo Quadrinho (Esquerda para Direita)</string>
     <string name="reader_page_prefix">Página</string>
     <string name="reader_page_of">de</string>
+    <string name="reader_zoom_in">Aumentar Zoom</string>
+    <string name="reader_zoom_out">Diminuir Zoom</string>
+    <string name="reader_zoom_reset">Redefinir Zoom</string>
+    <string name="reader_zoom_fit">1x / Ajustar</string>
+    <string name="reader_zoom_label">Zoom</string>
 
     <!-- Settings -->
     <string name="settings_title">Ajustes</string>

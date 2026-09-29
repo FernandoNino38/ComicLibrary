@@ -18,6 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,8 @@ fun ZoomableTiledPageView(
     bitmap: Bitmap?,
     isLoading: Boolean,
     pageIndex: Int,
+    zoomScale: Float,
+    onZoomScaleChange: (Float) -> Unit,
     onTapLeft: () -> Unit,
     onTapCenter: () -> Unit,
     onTapRight: () -> Unit,
@@ -55,11 +58,22 @@ fun ZoomableTiledPageView(
     val density = LocalDensity.current
 
     // Raw gesture states
-    var targetScale by remember { mutableFloatStateOf(1f) }
-    var rawOffsetX by remember { mutableFloatStateOf(0f) }
-    var rawOffsetY by remember { mutableFloatStateOf(0f) }
+    var targetScale by remember(pageIndex) { mutableFloatStateOf(zoomScale) }
+    var rawOffsetX by remember(pageIndex) { mutableFloatStateOf(0f) }
+    var rawOffsetY by remember(pageIndex) { mutableFloatStateOf(0f) }
 
-    // Spring animated scale for smooth harmonic double-tap zoom transitions
+    // Synchronize external zoom changes (e.g. from on-screen buttons)
+    LaunchedEffect(zoomScale) {
+        if (abs(targetScale - zoomScale) > 0.05f) {
+            targetScale = zoomScale
+            if (zoomScale <= 1.05f) {
+                rawOffsetX = 0f
+                rawOffsetY = 0f
+            }
+        }
+    }
+
+    // Spring animated scale for smooth harmonic double-tap and button zoom transitions
     val animatedScale by animateFloatAsState(
         targetValue = targetScale,
         animationSpec = MotionTokens.ShelfOverscroll,
@@ -95,13 +109,11 @@ fun ZoomableTiledPageView(
             .pointerInput(pageIndex) {
                 detectTapGestures(
                     onDoubleTap = {
-                        if (targetScale > 1.05f) {
-                            targetScale = 1f
-                            rawOffsetX = 0f
-                            rawOffsetY = 0f
-                        } else {
-                            targetScale = 2.5f
-                        }
+                        val newScale = if (targetScale > 1.05f) 1f else 2.5f
+                        targetScale = newScale
+                        rawOffsetX = 0f
+                        rawOffsetY = 0f
+                        onZoomScaleChange(newScale)
                     },
                     onTap = { offset ->
                         if (targetScale > 1.05f) {
@@ -147,7 +159,9 @@ fun ZoomableTiledPageView(
 
                             if (pastTouchSlop) {
                                 if (zoomChange != 1f) {
-                                    targetScale = (targetScale * zoomChange).coerceIn(1f, 4f)
+                                    val newScale = (targetScale * zoomChange).coerceIn(1f, 4f)
+                                    targetScale = newScale
+                                    onZoomScaleChange(newScale)
                                 }
 
                                 if (targetScale > 1.05f) {

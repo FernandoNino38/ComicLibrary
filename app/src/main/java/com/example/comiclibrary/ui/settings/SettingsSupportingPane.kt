@@ -302,7 +302,7 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "0.5 (Build 5)",
+                        text = "0.6 (Build 6)",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MaterialTheme.colorScheme.primary
                     )

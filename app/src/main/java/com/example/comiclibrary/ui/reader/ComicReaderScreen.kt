@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,8 +31,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.FitScreen
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.ZoomIn
+import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,7 +66,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import com.example.comiclibrary.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -71,9 +74,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.comiclibrary.R
 import com.example.comiclibrary.data.model.ComicBook
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.PageScrubber
+import com.example.comiclibrary.ui.components.SquircleShape
 import com.example.comiclibrary.ui.components.TonalFloatingBar
 import com.example.comiclibrary.ui.reader.mvi.ReaderError
 import com.example.comiclibrary.ui.reader.mvi.ReaderIntent
@@ -84,13 +89,12 @@ import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 /**
- * Native High-Performance CBZ Reader Screen (v0.4).
+ * Native High-Performance CBZ Reader Screen (v0.6).
  * Refinements:
+ * - On-screen Zoom option controls: Zoom in, Zoom out, percentage pill toggle, fit/reset.
+ * - Synchronized gesture zoom: double-tap, pinch-to-zoom, and on-screen buttons.
  * - Direct cover display during initialization for instant visual continuity.
- * - 3-zone touch controls:
- *   * Tap Right: Smooth animated leaf page-turn forward.
- *   * Tap Left: Smooth animated leaf page-turn backward.
- *   * Tap Center: Toggle Chrome (top header and bottom scrubber bar).
+ * - 3-zone touch controls: Tap Right (turn forward), Tap Left (turn backward), Tap Center (toggle UI).
  * - Smooth 3D paper leaf-curl animation running purely in draw/graphicsLayer phase.
  * - Full-width docked bottom bar (edge-to-edge).
  */
@@ -302,8 +306,12 @@ private fun ReaderReadyView(
         pageCount = { totalPages }
     )
 
-    // Notify repository on page change
+    // Current page zoom level state
+    var currentZoomScale by remember { mutableFloatStateOf(1f) }
+
+    // Reset zoom and notify repository on page change
     LaunchedEffect(pagerState.currentPage) {
+        currentZoomScale = 1f
         onIntent(ReaderIntent.ChangePage(pagerState.currentPage))
         onProgressUpdate(pagerState.currentPage)
     }
@@ -400,6 +408,8 @@ private fun ReaderReadyView(
                         bitmap = bitmap,
                         isLoading = bitmap == null,
                         pageIndex = pageIndex,
+                        zoomScale = currentZoomScale,
+                        onZoomScaleChange = { currentZoomScale = it },
                         onTapLeft = onTapLeft,
                         onTapCenter = onTapCenter,
                         onTapRight = onTapRight
@@ -472,27 +482,53 @@ private fun ReaderReadyView(
                         }
                     }
 
-                    // Reading Direction Toggle Chip
-                    SuggestionChip(
-                        onClick = { onIntent(ReaderIntent.ToggleReadingDirection) },
-                        label = { Text(if (state.isManga) "RTL" else "LTR", fontSize = 12.sp) },
-                        icon = {
-                            Icon(
-                                Icons.Default.SwapHoriz,
-                                contentDescription = stringResource(R.string.reader_toggle_reading_direction),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        colors = SuggestionChipDefaults.suggestionChipColors(
-                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        ),
-                        border = null
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        // Quick Zoom Option Chip in Top Bar
+                        SuggestionChip(
+                            onClick = {
+                                currentZoomScale = if (currentZoomScale > 1.05f) 1f else 2f
+                            },
+                            label = { Text("${(currentZoomScale * 100).toInt()}%", fontSize = 12.sp) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (currentZoomScale > 1.05f) Icons.Default.ZoomOut else Icons.Default.ZoomIn,
+                                    contentDescription = stringResource(R.string.reader_zoom_label),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            ),
+                            border = null
+                        )
+
+                        // Reading Direction Toggle Chip
+                        SuggestionChip(
+                            onClick = { onIntent(ReaderIntent.ToggleReadingDirection) },
+                            label = { Text(if (state.isManga) "RTL" else "LTR", fontSize = 12.sp) },
+                            icon = {
+                                Icon(
+                                    Icons.Default.SwapHoriz,
+                                    contentDescription = stringResource(R.string.reader_toggle_reading_direction),
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
+                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            ),
+                            border = null
+                        )
+                    }
                 }
             }
         }
 
-        // 3. Fading Chrome: Bottom Edge-to-Edge Docked Bar (Not a pill, covers entire bottom)
+        // 3. Fading Chrome: Bottom Edge-to-Edge Docked Bar with Dedicated On-Screen Zoom Controls
         AnimatedVisibility(
             visible = state.isChromeVisible,
             enter = fadeIn(MotionTokens.MicroInteraction) + slideInVertically(MotionTokens.PanelOffsetTransition) { it },
@@ -510,9 +546,82 @@ private fun ReaderReadyView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                        .padding(horizontal = 20.dp, vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // On-Screen Zoom Controls Bar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = { currentZoomScale = (currentZoomScale - 0.5f).coerceAtLeast(1f) },
+                            enabled = currentZoomScale > 1.05f
+                        ) {
+                            Icon(
+                                Icons.Default.ZoomOut,
+                                contentDescription = stringResource(R.string.reader_zoom_out),
+                                tint = if (currentZoomScale > 1.05f) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            )
+                        }
+
+                        Surface(
+                            onClick = { currentZoomScale = if (currentZoomScale > 1.05f) 1f else 2f },
+                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(horizontal = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ZoomIn,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(15.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "${(currentZoomScale * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        IconButton(
+                            onClick = { currentZoomScale = (currentZoomScale + 0.5f).coerceAtMost(4f) },
+                            enabled = currentZoomScale < 4f
+                        ) {
+                            Icon(
+                                Icons.Default.ZoomIn,
+                                contentDescription = stringResource(R.string.reader_zoom_in),
+                                tint = if (currentZoomScale < 4f) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            )
+                        }
+
+                        if (currentZoomScale > 1.05f) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            OutlinedButton(
+                                onClick = { currentZoomScale = 1f },
+                                shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.FitScreen,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.reader_zoom_fit), fontSize = 11.sp)
+                            }
+                        }
+                    }
+
                     PageScrubber(
                         currentPage = pagerState.currentPage,
                         totalPages = totalPages,

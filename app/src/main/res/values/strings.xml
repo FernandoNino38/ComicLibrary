@@ -56,6 +56,11 @@
     <string name="reader_mode_western_title">Comic Mode (Left to Right)</string>
     <string name="reader_page_prefix">Page</string>
     <string name="reader_page_of">of</string>
+    <string name="reader_zoom_in">Zoom In</string>
+    <string name="reader_zoom_out">Zoom Out</string>
+    <string name="reader_zoom_reset">Reset Zoom</string>
+    <string name="reader_zoom_fit">1x / Fit</string>
+    <string name="reader_zoom_label">Zoom</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
