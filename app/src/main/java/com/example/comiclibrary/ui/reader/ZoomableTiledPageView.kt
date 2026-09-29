@@ -1,12 +1,15 @@
 package com.example.comiclibrary.ui.reader
 
 import android.graphics.Bitmap
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculateCentroidSize
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -20,11 +23,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -34,14 +39,13 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.example.comiclibrary.ui.theme.MotionTokens
 import kotlin.math.abs
 import kotlin.math.max
+import kotlinx.coroutines.launch
 
 /**
- * High-performance Page View with pinch-to-zoom, pan, spring-based double tap,
- * and intelligent boundary gesture resolution for the parent HorizontalPager.
- * Receives downsampled bitmaps managed by ReaderViewModel's sliding LRU window.
+ * High-performance Page View with responsive pinch-to-zoom, pan, spring double-tap,
+ * and zero-leak clipping for the parent HorizontalPager.
  */
 @Composable
 fun ZoomableTiledPageView(
@@ -56,147 +60,202 @@ fun ZoomableTiledPageView(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
+    val coroutineScope = rememberCoroutineScope()
 
-    // Raw gesture states
-    var targetScale by remember(pageIndex) { mutableFloatStateOf(zoomScale) }
-    var rawOffsetX by remember(pageIndex) { mutableFloatStateOf(0f) }
-    var rawOffsetY by remember(pageIndex) { mutableFloatStateOf(0f) }
-
-    // Synchronize external zoom changes (e.g. from on-screen buttons)
-    LaunchedEffect(zoomScale) {
-        if (abs(targetScale - zoomScale) > 0.05f) {
-            targetScale = zoomScale
-            if (zoomScale <= 1.05f) {
-                rawOffsetX = 0f
-                rawOffsetY = 0f
-            }
-        }
-    }
-
-    // Spring animated scale for smooth harmonic double-tap and button zoom transitions
-    val animatedScale by animateFloatAsState(
-        targetValue = targetScale,
-        animationSpec = MotionTokens.ShelfOverscroll,
-        label = "PageZoomSpring"
-    )
+    val scaleAnim = remember(pageIndex) { Animatable(zoomScale) }
+    val offsetXAnim = remember(pageIndex) { Animatable(0f) }
+    val offsetYAnim = remember(pageIndex) { Animatable(0f) }
+    var isGestureActive by remember { mutableStateOf(false) }
 
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
+            .clipToBounds()
             .background(Color.Black),
         contentAlignment = Alignment.Center
     ) {
         val viewWidthPx = with(density) { maxWidth.toPx() }
         val viewHeightPx = with(density) { maxHeight.toPx() }
 
-        // Maximum allowed offsets given the current scale
-        val maxOffsetX = max(0f, (animatedScale - 1f) * viewWidthPx / 2f)
-        val maxOffsetY = max(0f, (animatedScale - 1f) * viewHeightPx / 2f)
+        // Synchronize external zoom changes (e.g. from on-screen buttons)
+        LaunchedEffect(zoomScale) {
+            if (!isGestureActive && abs(scaleAnim.value - zoomScale) > 0.02f) {
+                val targetS = zoomScale.coerceIn(1f, 4f)
+                val currentMaxX = max(0f, (targetS - 1f) * viewWidthPx / 2f)
+                val currentMaxY = max(0f, (targetS - 1f) * viewHeightPx / 2f)
+                val targetOx = if (targetS <= 1.05f) 0f else offsetXAnim.value.coerceIn(-currentMaxX, currentMaxX)
+                val targetOy = if (targetS <= 1.05f) 0f else offsetYAnim.value.coerceIn(-currentMaxY, currentMaxY)
 
-        // Ensure offsets remain clamped inside page bounds
-        val clampedOffsetX = rawOffsetX.coerceIn(-maxOffsetX, maxOffsetX)
-        val clampedOffsetY = rawOffsetY.coerceIn(-maxOffsetY, maxOffsetY)
-
-        // Reset offsets when zoomed out
-        if (targetScale <= 1.05f && (rawOffsetX != 0f || rawOffsetY != 0f)) {
-            rawOffsetX = 0f
-            rawOffsetY = 0f
+                coroutineScope.launch {
+                    launch {
+                        scaleAnim.animateTo(
+                            targetS,
+                            spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
+                        )
+                    }
+                    launch {
+                        offsetXAnim.animateTo(
+                            targetOx,
+                            spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
+                        )
+                    }
+                    launch {
+                        offsetYAnim.animateTo(
+                            targetOy,
+                            spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
+                        )
+                    }
+                }
+            }
         }
 
-        // Gesture handling modifier
-        val gestureModifier = Modifier
-            // 1. Double tap & 3-zone Tap (Left, Center, Right)
-            .pointerInput(pageIndex) {
-                detectTapGestures(
-                    onDoubleTap = {
-                        val newScale = if (targetScale > 1.05f) 1f else 2.5f
-                        targetScale = newScale
-                        rawOffsetX = 0f
-                        rawOffsetY = 0f
-                        onZoomScaleChange(newScale)
-                    },
-                    onTap = { offset ->
-                        if (targetScale > 1.05f) {
-                            // If zoomed in, tap toggles chrome so user can still access UI
-                            onTapCenter()
+        // 1. Taps and double-taps
+        val tapModifier = Modifier.pointerInput(pageIndex) {
+            detectTapGestures(
+                onDoubleTap = { tapOffset ->
+                    coroutineScope.launch {
+                        if (scaleAnim.value > 1.05f) {
+                            // Reset to 1x
+                            onZoomScaleChange(1f)
+                            launch { scaleAnim.animateTo(1f, spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)) }
+                            launch { offsetXAnim.animateTo(0f, spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)) }
+                            launch { offsetYAnim.animateTo(0f, spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium)) }
                         } else {
-                            val screenWidth = size.width
-                            when {
-                                offset.x < screenWidth * 0.30f -> onTapLeft()
-                                offset.x > screenWidth * 0.70f -> onTapRight()
-                                else -> onTapCenter()
+                            // Zoom to 2.5x centered on tap
+                            val targetS = 2.5f
+                            val cx = tapOffset.x - viewWidthPx / 2f
+                            val cy = tapOffset.y - viewHeightPx / 2f
+                            val maxOx = max(0f, (targetS - 1f) * viewWidthPx / 2f)
+                            val maxOy = max(0f, (targetS - 1f) * viewHeightPx / 2f)
+                            val targetOx = (-cx * (targetS - 1f)).coerceIn(-maxOx, maxOx)
+                            val targetOy = (-cy * (targetS - 1f)).coerceIn(-maxOy, maxOy)
+
+                            onZoomScaleChange(targetS)
+                            launch { scaleAnim.animateTo(targetS, spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)) }
+                            launch { offsetXAnim.animateTo(targetOx, spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)) }
+                            launch { offsetYAnim.animateTo(targetOy, spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)) }
+                        }
+                    }
+                },
+                onTap = { offset ->
+                    if (scaleAnim.value > 1.05f) {
+                        onTapCenter()
+                    } else {
+                        val screenWidth = size.width
+                        when {
+                            offset.x < screenWidth * 0.30f -> onTapLeft()
+                            offset.x > screenWidth * 0.70f -> onTapRight()
+                            else -> onTapCenter()
+                        }
+                    }
+                }
+            )
+        }
+
+        // 2. Multitouch Pinch-to-zoom & Pan
+        val transformModifier = Modifier.pointerInput(pageIndex) {
+            awaitEachGesture {
+                awaitFirstDown(requireUnconsumed = false)
+                var zoom = 1f
+                var pan = Offset.Zero
+                var pastTouchSlop = false
+                val touchSlop = viewConfiguration.touchSlop
+
+                do {
+                    val event = awaitPointerEvent()
+                    val pointerCount = event.changes.count { it.pressed }
+                    val isCurrentlyZoomed = scaleAnim.value > 1.05f
+
+                    if (pointerCount >= 2 || isCurrentlyZoomed) {
+                        val zoomChange = event.calculateZoom()
+                        val panChange = event.calculatePan()
+                        val centroid = event.calculateCentroid(useCurrent = false)
+
+                        if (!pastTouchSlop) {
+                            zoom *= zoomChange
+                            pan += panChange
+
+                            val centroidSize = event.calculateCentroidSize(useCurrent = false)
+                            val zoomMotion = abs(1f - zoom) * centroidSize
+                            val panMotion = pan.getDistance()
+
+                            // Very responsive pinch detection for 2 fingers
+                            val slop = if (pointerCount >= 2) touchSlop * 0.25f else touchSlop
+                            if (zoomMotion > slop || (isCurrentlyZoomed && panMotion > slop)) {
+                                pastTouchSlop = true
+                                isGestureActive = true
+                            }
+                        }
+
+                        if (pastTouchSlop) {
+                            val oldScale = scaleAnim.value
+                            val newScale = (oldScale * zoomChange).coerceIn(0.75f, 5.0f)
+
+                            val currentMaxX = max(0f, (newScale - 1f) * viewWidthPx / 2f)
+                            val currentMaxY = max(0f, (newScale - 1f) * viewHeightPx / 2f)
+
+                            val cx = centroid.x - viewWidthPx / 2f
+                            val cy = centroid.y - viewHeightPx / 2f
+
+                            val newOffsetX = if (oldScale > 0.001f) {
+                                ((offsetXAnim.value - cx) * (newScale / oldScale) + cx + panChange.x).coerceIn(-currentMaxX, currentMaxX)
+                            } else 0f
+
+                            val newOffsetY = if (oldScale > 0.001f) {
+                                ((offsetYAnim.value - cy) * (newScale / oldScale) + cy + panChange.y).coerceIn(-currentMaxY, currentMaxY)
+                            } else 0f
+
+                            coroutineScope.launch {
+                                scaleAnim.snapTo(newScale)
+                                offsetXAnim.snapTo(newOffsetX)
+                                offsetYAnim.snapTo(newOffsetY)
+                            }
+
+                            onZoomScaleChange(newScale.coerceIn(1f, 4f))
+
+                            event.changes.forEach { change ->
+                                if (change.positionChange() != Offset.Zero) {
+                                    change.consume()
+                                }
                             }
                         }
                     }
-                )
-            }
-            // 2. Multitouch transform + Gesture Conflict Resolution with Parent Pager
-            .pointerInput(pageIndex, targetScale, maxOffsetX, maxOffsetY) {
-                awaitEachGesture {
-                    val down = awaitFirstDown(requireUnconsumed = false)
-                    var zoom = 1f
-                    var pan = Offset.Zero
-                    var pastTouchSlop = false
+                } while (event.changes.any { it.pressed })
 
-                    do {
-                        val event = awaitPointerEvent()
-                        val canceled = event.changes.any { it.isConsumed }
+                if (pastTouchSlop) {
+                    val targetScaleSettled = scaleAnim.value.coerceIn(1f, 4f)
+                    val settledMaxX = max(0f, (targetScaleSettled - 1f) * viewWidthPx / 2f)
+                    val settledMaxY = max(0f, (targetScaleSettled - 1f) * viewHeightPx / 2f)
+                    val targetOffsetX = if (targetScaleSettled <= 1.05f) 0f else offsetXAnim.value.coerceIn(-settledMaxX, settledMaxX)
+                    val targetOffsetY = if (targetScaleSettled <= 1.05f) 0f else offsetYAnim.value.coerceIn(-settledMaxY, settledMaxY)
 
-                        if (!canceled) {
-                            val zoomChange = event.calculateZoom()
-                            val panChange = event.calculatePan()
-
-                            if (!pastTouchSlop) {
-                                zoom *= zoomChange
-                                pan += panChange
-
-                                val centroid = event.calculateCentroid(useCurrent = false)
-                                val hasMoved = (zoom - 1f).let { abs(it) > 0.05f } || pan.getDistance() > 10f
-                                if (hasMoved) {
-                                    pastTouchSlop = true
-                                }
-                            }
-
-                            if (pastTouchSlop) {
-                                if (zoomChange != 1f) {
-                                    val newScale = (targetScale * zoomChange).coerceIn(1f, 4f)
-                                    targetScale = newScale
-                                    onZoomScaleChange(newScale)
-                                }
-
-                                if (targetScale > 1.05f) {
-                                    val currentMaxX = max(0f, (targetScale - 1f) * viewWidthPx / 2f)
-                                    val newOffsetX = (rawOffsetX + panChange.x).coerceIn(-currentMaxX, currentMaxX)
-                                    val newOffsetY = (rawOffsetY + panChange.y).coerceIn(-maxOffsetY, maxOffsetY)
-
-                                    val isAtLeftEdge = (rawOffsetX >= currentMaxX - 6f)
-                                    val isAtRightEdge = (rawOffsetX <= -currentMaxX + 6f)
-
-                                    val movingPastLeft = isAtLeftEdge && panChange.x > 0
-                                    val movingPastRight = isAtRightEdge && panChange.x < 0
-
-                                    if (movingPastLeft || movingPastRight) {
-                                        // DO NOT consume horizontal drag! Delegate to parent HorizontalPager
-                                        rawOffsetY = newOffsetY
-                                    } else {
-                                        // Still panning inside zoomed comic: consume event
-                                        rawOffsetX = newOffsetX
-                                        rawOffsetY = newOffsetY
-                                        event.changes.forEach { change ->
-                                            if (change.positionChange() != Offset.Zero) {
-                                                change.consume()
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    rawOffsetX = 0f
-                                    rawOffsetY = 0f
-                                }
-                            }
+                    coroutineScope.launch {
+                        launch {
+                            scaleAnim.animateTo(
+                                targetScaleSettled,
+                                spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)
+                            )
                         }
-                    } while (!canceled && event.changes.any { it.pressed })
+                        launch {
+                            offsetXAnim.animateTo(
+                                targetOffsetX,
+                                spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)
+                            )
+                        }
+                        launch {
+                            offsetYAnim.animateTo(
+                                targetOffsetY,
+                                spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMedium)
+                            )
+                        }
+                        onZoomScaleChange(targetScaleSettled)
+                        isGestureActive = false
+                    }
+                } else {
+                    isGestureActive = false
                 }
             }
+        }
 
         when {
             bitmap != null && !bitmap.isRecycled -> {
@@ -206,12 +265,13 @@ fun ZoomableTiledPageView(
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
                         .fillMaxSize()
-                        .then(gestureModifier)
+                        .then(tapModifier)
+                        .then(transformModifier)
                         .graphicsLayer {
-                            scaleX = animatedScale
-                            scaleY = animatedScale
-                            translationX = clampedOffsetX
-                            translationY = clampedOffsetY
+                            scaleX = scaleAnim.value
+                            scaleY = scaleAnim.value
+                            translationX = offsetXAnim.value
+                            translationY = offsetYAnim.value
                         }
                 )
             }

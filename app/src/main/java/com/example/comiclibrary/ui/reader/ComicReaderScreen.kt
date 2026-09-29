@@ -57,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
@@ -377,14 +378,19 @@ private fun ReaderReadyView(
         CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize(),
+                userScrollEnabled = (currentZoomScale <= 1.05f),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clipToBounds(),
                 beyondViewportPageCount = 1
             ) { pageIndex ->
+                val isCurrentPage = (pageIndex == pagerState.currentPage)
                 val bitmap = cachedBitmaps[pageIndex]
 
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .clipToBounds()
                         .graphicsLayer {
                             val pageOffset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction)
                             cameraDistance = 18f * density
@@ -408,8 +414,12 @@ private fun ReaderReadyView(
                         bitmap = bitmap,
                         isLoading = bitmap == null,
                         pageIndex = pageIndex,
-                        zoomScale = currentZoomScale,
-                        onZoomScaleChange = { currentZoomScale = it },
+                        zoomScale = if (isCurrentPage) currentZoomScale else 1f,
+                        onZoomScaleChange = { newScale ->
+                            if (isCurrentPage) {
+                                currentZoomScale = newScale
+                            }
+                        },
                         onTapLeft = onTapLeft,
                         onTapCenter = onTapCenter,
                         onTapRight = onTapRight
