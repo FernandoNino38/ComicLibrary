@@ -5,6 +5,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -51,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.comiclibrary.R
 import com.example.comiclibrary.theme.ComicCyan
 import com.example.comiclibrary.theme.ComicInkBlack
+import com.example.comiclibrary.theme.ComicRedDark
 import com.example.comiclibrary.theme.ComicTitleFontFamily
 import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
@@ -89,6 +91,8 @@ fun SettingsSupportingPane(
         }
     }
 
+    val isDark = isSystemInDarkTheme()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -105,7 +109,7 @@ fun SettingsSupportingPane(
                 fontSize = 38.sp,
                 letterSpacing = 2.sp
             ),
-            color = ComicYellow
+            color = if (isDark) ComicYellow else ComicInkBlack
         )
 
         Text(
@@ -130,7 +134,7 @@ fun SettingsSupportingPane(
                     Icon(
                         Icons.AutoMirrored.Filled.LibraryBooks,
                         contentDescription = null,
-                        tint = ComicYellow
+                        tint = if (isDark) ComicYellow else ComicInkBlack
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
@@ -139,7 +143,7 @@ fun SettingsSupportingPane(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
                 }
 
@@ -165,13 +169,13 @@ fun SettingsSupportingPane(
                                 fontFamily = ComicTitleFontFamily,
                                 letterSpacing = 0.8.sp
                             ),
-                            color = ComicYellow
+                            color = if (isDark) ComicYellow else ComicInkBlack
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         LinearProgressIndicator(
                             progress = { if (total > 0) current.toFloat() / total.toFloat() else 0f },
                             modifier = Modifier.fillMaxWidth().height(4.dp),
-                            color = ComicYellow
+                            color = if (isDark) ComicYellow else ComicRedDark
                         )
                     }
                 }
@@ -211,12 +215,12 @@ fun SettingsSupportingPane(
                         },
                         modifier = Modifier.weight(1f),
                         shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.5f),
-                        border = BorderStroke(1.5.dp, ComicYellow)
+                        border = BorderStroke(1.5.dp, if (isDark) ComicYellow else ComicInkBlack)
                     ) {
                         Icon(
                             Icons.Default.FolderOpen,
                             contentDescription = null,
-                            tint = ComicYellow
+                            tint = if (isDark) ComicYellow else ComicInkBlack
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
@@ -225,7 +229,7 @@ fun SettingsSupportingPane(
                                 fontFamily = ComicTitleFontFamily,
                                 letterSpacing = 1.sp
                             ),
-                            color = ComicYellow
+                            color = if (isDark) ComicYellow else ComicInkBlack
                         )
                     }
                 }
@@ -239,7 +243,7 @@ fun SettingsSupportingPane(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Memory, contentDescription = null, tint = ComicYellow)
+                    Icon(Icons.Default.Memory, contentDescription = null, tint = if (isDark) ComicYellow else ComicInkBlack)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.settings_memory_title).uppercase(),
@@ -247,7 +251,7 @@ fun SettingsSupportingPane(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
                 }
 
@@ -272,7 +276,7 @@ fun SettingsSupportingPane(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Security, contentDescription = null, tint = ComicYellow)
+                    Icon(Icons.Default.Security, contentDescription = null, tint = if (isDark) ComicYellow else ComicInkBlack)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.settings_storage_title).uppercase(),
@@ -280,7 +284,7 @@ fun SettingsSupportingPane(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
                 }
 
@@ -310,7 +314,7 @@ fun SettingsSupportingPane(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
                     Text(
                         text = stringResource(R.string.settings_cache_desc),
@@ -354,7 +358,7 @@ fun SettingsSupportingPane(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
                 }
 
@@ -368,13 +372,13 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "0.9 (Build 9)",
+                        text = "1.0 (Build 10)",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = ComicTitleFontFamily,
                             fontSize = 15.sp,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
                 }
 

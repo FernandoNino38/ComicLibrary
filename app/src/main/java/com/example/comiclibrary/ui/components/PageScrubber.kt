@@ -1,5 +1,6 @@
 package com.example.comiclibrary.ui.components
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.comiclibrary.R
+import com.example.comiclibrary.theme.ComicInkBlack
+import com.example.comiclibrary.theme.ComicRedDark
 import com.example.comiclibrary.theme.ComicTitleFontFamily
 import com.example.comiclibrary.theme.ComicYellow
 
@@ -31,6 +34,8 @@ fun PageScrubber(
     modifier: Modifier = Modifier
 ) {
     if (totalPages <= 1) return
+
+    val isDark = isSystemInDarkTheme()
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -50,7 +55,7 @@ fun PageScrubber(
                     fontSize = 15.sp,
                     letterSpacing = 1.sp
                 ),
-                color = ComicYellow
+                color = if (isDark) ComicYellow else ComicInkBlack
             )
             Text(
                 text = "${stringResource(R.string.reader_page_of).uppercase()} $totalPages",
@@ -59,7 +64,7 @@ fun PageScrubber(
                     fontSize = 13.sp,
                     letterSpacing = 0.8.sp
                 ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else ComicInkBlack.copy(alpha = 0.6f)
             )
         }
 
@@ -71,9 +76,9 @@ fun PageScrubber(
             valueRange = 0f..(totalPages - 1).toFloat(),
             steps = (totalPages - 2).coerceAtLeast(0),
             colors = SliderDefaults.colors(
-                thumbColor = ComicYellow,
-                activeTrackColor = ComicYellow,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                thumbColor = if (isDark) ComicYellow else ComicRedDark,
+                activeTrackColor = if (isDark) ComicYellow else ComicRedDark,
+                inactiveTrackColor = if (isDark) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else ComicInkBlack.copy(alpha = 0.15f)
             ),
             modifier = Modifier
                 .fillMaxWidth()

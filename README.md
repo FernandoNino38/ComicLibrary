@@ -6,7 +6,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0+-purple.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-blue.svg)](https://developer.android.com/jetpack/compose)
 [![AMOLED](https://img.shields.io/badge/AMOLED-Pure%20%23000000-black.svg)](#)
-[![Version](https://img.shields.io/badge/Version-v0.9-yellow.svg)](#)
+[![Version](https://img.shields.io/badge/Version-v1.0-yellow.svg)](#)
 
 ---
 

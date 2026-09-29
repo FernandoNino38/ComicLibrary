@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,6 +87,7 @@ import com.example.comiclibrary.theme.ComicCyan
 import com.example.comiclibrary.theme.ComicInkBlack
 import com.example.comiclibrary.theme.ComicPanelBorder
 import com.example.comiclibrary.theme.ComicRed
+import com.example.comiclibrary.theme.ComicRedDark
 import com.example.comiclibrary.theme.ComicTitleFontFamily
 import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
@@ -113,6 +115,7 @@ fun ComicLibraryScreen(
     var isSearchExpanded by remember { mutableStateOf(false) }
     var selectedFilterKey by remember { mutableStateOf("all") }
     var comicForDetailDialog by remember { mutableStateOf<ComicBook?>(null) }
+    val isDark = isSystemInDarkTheme()
 
     val filterOptions = listOf(
         "all" to stringResource(R.string.filter_all),
@@ -178,7 +181,7 @@ fun ComicLibraryScreen(
                                         fontSize = 38.sp,
                                         letterSpacing = 2.sp
                                     ),
-                                    color = ComicYellow
+                                    color = if (isDark) ComicYellow else ComicInkBlack
                                 )
 
                                 Text(
@@ -206,12 +209,12 @@ fun ComicLibraryScreen(
                             modifier = Modifier
                                 .clip(SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
                                 .background(MaterialTheme.colorScheme.surfaceContainer)
-                                .border(BorderStroke(1.5.dp, ComicYellow.copy(alpha = 0.6f)), SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
+                                .border(BorderStroke(1.5.dp, if (isDark) ComicYellow.copy(alpha = 0.6f) else ComicInkBlack.copy(alpha = 0.6f)), SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = stringResource(R.string.search_comics),
-                                tint = ComicYellow
+                                tint = if (isDark) ComicYellow else ComicInkBlack
                             )
                         }
                     }
@@ -229,7 +232,7 @@ fun ComicLibraryScreen(
                             Icon(
                                 Icons.Default.Search,
                                 contentDescription = null,
-                                tint = ComicYellow
+                                tint = if (isDark) ComicYellow else ComicInkBlack
                             )
                         },
                         trailingIcon = {
@@ -240,7 +243,7 @@ fun ComicLibraryScreen(
                                 Icon(
                                     Icons.Default.Close,
                                     contentDescription = stringResource(R.string.close_search),
-                                    tint = ComicYellow
+                                    tint = if (isDark) ComicYellow else ComicInkBlack
                                 )
                             }
                         },
@@ -249,7 +252,7 @@ fun ComicLibraryScreen(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            focusedBorderColor = ComicYellow,
+                            focusedBorderColor = if (isDark) ComicYellow else ComicInkBlack,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                         ),
                         modifier = Modifier.fillMaxWidth()
@@ -315,7 +318,7 @@ fun ComicLibraryScreen(
                             shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
                             border = BorderStroke(
                                 1.5.dp,
-                                if (isSelected) ComicYellow else MaterialTheme.colorScheme.outlineVariant
+                                if (isSelected) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant
                             ),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ComicYellow,
@@ -331,7 +334,7 @@ fun ComicLibraryScreen(
 
             if (isLoading && comics.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = ComicYellow)
+                    CircularProgressIndicator(color = if (isDark) ComicYellow else ComicRedDark)
                 }
             } else if (comics.isEmpty()) {
                 // Empty state with navigation to Settings for importing
@@ -367,7 +370,7 @@ fun ComicLibraryScreen(
                                     fontSize = 24.sp,
                                     letterSpacing = 1.sp
                                 ),
-                                color = ComicYellow
+                                color = if (isDark) ComicYellow else ComicInkBlack
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -463,6 +466,7 @@ private fun ComicFocusBlockItem(
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val isDark = isSystemInDarkTheme()
 
     Column(
         modifier = Modifier
@@ -506,7 +510,7 @@ private fun ComicFocusBlockItem(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow,
+                        color = if (isDark) ComicYellow else ComicInkBlack,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(12.dp)
                     )
@@ -561,7 +565,7 @@ private fun ComicFocusBlockItem(
                     .fillMaxWidth()
                     .height(3.5.dp)
                     .clip(RectangleShape),
-                color = if (comic.isFinished) ComicYellow else ComicCyan,
+                color = if (comic.isFinished) (if (isDark) ComicYellow else ComicRedDark) else ComicCyan,
                 trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -610,6 +614,7 @@ fun ComicDetailModalDialog(
     onToggleFavorite: () -> Unit
 ) {
     val context = LocalContext.current
+    val isDark = isSystemInDarkTheme()
     val fileSizeFormatted = remember(comic.fileSizeBytes) {
         val mb = comic.fileSizeBytes / (1024.0 * 1024.0)
         String.format(Locale.getDefault(), "%.2f MB", mb)
@@ -624,7 +629,7 @@ fun ComicDetailModalDialog(
             color = MaterialTheme.colorScheme.surfaceContainer,
             tonalElevation = 8.dp,
             shadowElevation = 16.dp,
-            border = BorderStroke(2.dp, ComicYellow),
+            border = BorderStroke(2.dp, if (isDark) ComicYellow else ComicInkBlack),
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .padding(vertical = 24.dp)
@@ -644,7 +649,7 @@ fun ComicDetailModalDialog(
                             .width(84.dp)
                             .aspectRatio(0.72f)
                             .clip(RectangleShape)
-                            .border(BorderStroke(1.5.dp, ComicYellow.copy(alpha = 0.7f)), RectangleShape)
+                            .border(BorderStroke(1.5.dp, if (isDark) ComicYellow.copy(alpha = 0.7f) else ComicInkBlack.copy(alpha = 0.7f)), RectangleShape)
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     ) {
                         if (comic.coverPath != null && File(comic.coverPath).exists()) {
@@ -664,7 +669,7 @@ fun ComicDetailModalDialog(
                                     .background(MaterialTheme.colorScheme.primaryContainer),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = ComicYellow)
+                                Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = if (isDark) ComicYellow else ComicInkBlack)
                             }
                         }
                     }
@@ -684,7 +689,7 @@ fun ComicDetailModalDialog(
                                     fontSize = 20.sp,
                                     letterSpacing = 0.8.sp
                                 ),
-                                color = ComicYellow,
+                                color = if (isDark) ComicYellow else ComicInkBlack,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
@@ -735,7 +740,7 @@ fun ComicDetailModalDialog(
                                 fontSize = 12.sp,
                                 letterSpacing = 0.8.sp
                             ),
-                            color = ComicYellow
+                            color = if (isDark) ComicYellow else ComicRedDark
                         )
                     }
                 }
@@ -818,7 +823,7 @@ fun ComicDetailModalDialog(
                                 fontFamily = ComicTitleFontFamily,
                                 letterSpacing = 0.8.sp
                             ),
-                            color = ComicYellow
+                            color = if (isDark) ComicYellow else ComicInkBlack
                         )
                         Text(
                             text = comic.metadata.summary,
@@ -883,6 +888,7 @@ private fun DetailInfoRow(
     value: String,
     isMonospace: Boolean = false
 ) {
+    val isDark = isSystemInDarkTheme()
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label.uppercase(),
@@ -891,7 +897,7 @@ private fun DetailInfoRow(
                 fontSize = 12.sp,
                 letterSpacing = 0.8.sp
             ),
-            color = ComicYellow
+            color = if (isDark) ComicYellow else ComicInkBlack
         )
         Text(
             text = value,

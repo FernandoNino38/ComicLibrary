@@ -11,6 +11,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +39,7 @@ import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -79,7 +81,10 @@ import coil.request.ImageRequest
 import com.example.comiclibrary.R
 import com.example.comiclibrary.data.model.ComicBook
 import com.example.comiclibrary.theme.ComicCyan
+import com.example.comiclibrary.theme.ComicInkBlack
 import com.example.comiclibrary.theme.ComicPanelBorder
+import com.example.comiclibrary.theme.ComicPaperWhite
+import com.example.comiclibrary.theme.ComicRedDark
 import com.example.comiclibrary.theme.ComicTitleFontFamily
 import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
@@ -306,6 +311,7 @@ private fun ReaderReadyView(
     onProgressUpdate: (Int) -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val isDark = isSystemInDarkTheme()
     val totalPages = state.totalPages
     val pagerState = rememberPagerState(
         initialPage = state.currentPage.coerceIn(0, (totalPages - 1).coerceAtLeast(0)),
@@ -456,7 +462,9 @@ private fun ReaderReadyView(
                 .padding(horizontal = 24.dp, vertical = 12.dp)
         ) {
             TonalFloatingBar(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainerHigh else ComicPaperWhite,
+                borderColor = if (isDark) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f) else ComicInkBlack.copy(alpha = 0.7f)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -485,7 +493,7 @@ private fun ReaderReadyView(
                                     fontSize = 17.sp,
                                     letterSpacing = 0.8.sp
                                 ),
-                                color = ComicYellow,
+                                color = if (isDark) ComicYellow else ComicInkBlack,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -500,7 +508,7 @@ private fun ReaderReadyView(
                                     fontSize = 11.sp,
                                     letterSpacing = 0.5.sp
                                 ),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else ComicRedDark
                             )
                         }
                     }
@@ -521,21 +529,22 @@ private fun ReaderReadyView(
                                         fontFamily = ComicTitleFontFamily,
                                         fontSize = 12.sp,
                                         letterSpacing = 0.5.sp
-                                    )
+                                    ),
+                                    color = if (isDark) MaterialTheme.colorScheme.onSurface else ComicInkBlack
                                 )
                             },
                             icon = {
                                 Icon(
                                     imageVector = if (currentZoomScale > 1.05f) Icons.Default.ZoomOut else Icons.Default.ZoomIn,
                                     contentDescription = stringResource(R.string.reader_zoom_label),
-                                    tint = ComicYellow,
+                                    tint = if (isDark) ComicYellow else ComicInkBlack,
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                containerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainer else Color(0xFFF2EFE9)
                             ),
-                            border = BorderStroke(1.dp, ComicYellow.copy(alpha = 0.5f))
+                            border = BorderStroke(1.dp, if (isDark) ComicYellow.copy(alpha = 0.5f) else ComicInkBlack.copy(alpha = 0.6f))
                         )
 
                         // Reading Direction Toggle Chip
@@ -548,21 +557,22 @@ private fun ReaderReadyView(
                                         fontFamily = ComicTitleFontFamily,
                                         fontSize = 12.sp,
                                         letterSpacing = 0.5.sp
-                                    )
+                                    ),
+                                    color = if (isDark) MaterialTheme.colorScheme.onSurface else ComicInkBlack
                                 )
                             },
                             icon = {
                                 Icon(
                                     Icons.Default.SwapHoriz,
                                     contentDescription = stringResource(R.string.reader_toggle_reading_direction),
-                                    tint = ComicYellow,
+                                    tint = if (isDark) ComicYellow else ComicInkBlack,
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                                containerColor = if (isDark) MaterialTheme.colorScheme.surfaceContainer else Color(0xFFF2EFE9)
                             ),
-                            border = BorderStroke(1.dp, ComicYellow.copy(alpha = 0.5f))
+                            border = BorderStroke(1.dp, if (isDark) ComicYellow.copy(alpha = 0.5f) else ComicInkBlack.copy(alpha = 0.6f))
                         )
                     }
                 }
@@ -578,11 +588,11 @@ private fun ReaderReadyView(
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f),
+                color = if (isDark) MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f) else ComicPaperWhite.copy(alpha = 0.98f),
                 tonalElevation = 8.dp,
                 shadowElevation = 16.dp,
                 shape = RectangleShape,
-                border = BorderStroke(1.dp, ComicPanelBorder)
+                border = BorderStroke(1.5.dp, if (isDark) ComicPanelBorder else ComicInkBlack.copy(alpha = 0.8f))
             ) {
                 Column(
                     modifier = Modifier
@@ -606,15 +616,19 @@ private fun ReaderReadyView(
                             Icon(
                                 Icons.Default.ZoomOut,
                                 contentDescription = stringResource(R.string.reader_zoom_out),
-                                tint = if (currentZoomScale > 1.05f) ComicYellow else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                tint = if (currentZoomScale > 1.05f) {
+                                    if (isDark) ComicYellow else ComicInkBlack
+                                } else {
+                                    if (isDark) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f) else ComicInkBlack.copy(alpha = 0.25f)
+                                }
                             )
                         }
 
                         Surface(
                             onClick = { currentZoomScale = if (currentZoomScale > 1.05f) 1f else 2f },
                             shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
-                            color = MaterialTheme.colorScheme.surfaceContainer,
-                            border = BorderStroke(1.5.dp, ComicYellow.copy(alpha = 0.7f)),
+                            color = if (isDark) MaterialTheme.colorScheme.surfaceContainer else ComicYellow,
+                            border = BorderStroke(1.5.dp, if (isDark) ComicYellow.copy(alpha = 0.7f) else ComicInkBlack),
                             modifier = Modifier.padding(horizontal = 6.dp)
                         ) {
                             Row(
@@ -625,7 +639,7 @@ private fun ReaderReadyView(
                                     imageVector = Icons.Default.ZoomIn,
                                     contentDescription = null,
                                     modifier = Modifier.size(15.dp),
-                                    tint = ComicYellow
+                                    tint = if (isDark) ComicYellow else ComicInkBlack
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
@@ -635,7 +649,7 @@ private fun ReaderReadyView(
                                         fontSize = 14.sp,
                                         letterSpacing = 0.8.sp
                                     ),
-                                    color = ComicYellow
+                                    color = if (isDark) ComicYellow else ComicInkBlack
                                 )
                             }
                         }
@@ -647,7 +661,11 @@ private fun ReaderReadyView(
                             Icon(
                                 Icons.Default.ZoomIn,
                                 contentDescription = stringResource(R.string.reader_zoom_in),
-                                tint = if (currentZoomScale < 4f) ComicYellow else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                tint = if (currentZoomScale < 4f) {
+                                    if (isDark) ComicYellow else ComicInkBlack
+                                } else {
+                                    if (isDark) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f) else ComicInkBlack.copy(alpha = 0.25f)
+                                }
                             )
                         }
 
@@ -656,13 +674,17 @@ private fun ReaderReadyView(
                             OutlinedButton(
                                 onClick = { currentZoomScale = 1f },
                                 shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
-                                border = BorderStroke(1.dp, ComicYellow),
+                                border = BorderStroke(1.dp, if (isDark) ComicYellow else ComicInkBlack),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = if (isDark) Color.Transparent else ComicYellow.copy(alpha = 0.15f),
+                                    contentColor = if (isDark) ComicYellow else ComicInkBlack
+                                ),
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
                             ) {
                                 Icon(
                                     Icons.Default.FitScreen,
                                     contentDescription = null,
-                                    tint = ComicYellow,
+                                    tint = if (isDark) ComicYellow else ComicInkBlack,
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -672,7 +694,7 @@ private fun ReaderReadyView(
                                         fontFamily = ComicTitleFontFamily,
                                         letterSpacing = 0.5.sp
                                     ),
-                                    color = ComicYellow
+                                    color = if (isDark) ComicYellow else ComicInkBlack
                                 )
                             }
                         }
@@ -709,7 +731,7 @@ private fun ReaderReadyView(
                             Icon(
                                 Icons.AutoMirrored.Filled.MenuBook,
                                 contentDescription = stringResource(R.string.reader_first_page),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else ComicInkBlack.copy(alpha = 0.7f)
                             )
                         }
 
@@ -724,7 +746,7 @@ private fun ReaderReadyView(
                                 fontSize = 14.sp,
                                 letterSpacing = 1.sp
                             ),
-                            color = ComicYellow
+                            color = if (isDark) ComicYellow else ComicInkBlack
                         )
 
                         IconButton(onClick = {
@@ -738,7 +760,7 @@ private fun ReaderReadyView(
                             Icon(
                                 Icons.Default.AutoStories,
                                 contentDescription = stringResource(R.string.reader_last_page),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = if (isDark) MaterialTheme.colorScheme.onSurfaceVariant else ComicInkBlack.copy(alpha = 0.7f)
                             )
                         }
                     }

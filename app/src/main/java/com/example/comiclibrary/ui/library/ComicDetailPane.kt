@@ -3,6 +3,7 @@ package com.example.comiclibrary.ui.library
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import com.example.comiclibrary.data.model.ComicBook
 import com.example.comiclibrary.theme.ComicCyan
 import com.example.comiclibrary.theme.ComicInkBlack
 import com.example.comiclibrary.theme.ComicRed
+import com.example.comiclibrary.theme.ComicRedDark
 import com.example.comiclibrary.theme.ComicTitleFontFamily
 import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
@@ -83,6 +85,7 @@ fun ComicDetailPane(
 
     val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val isDark = isSystemInDarkTheme()
 
     Column(
         modifier = modifier
@@ -106,7 +109,7 @@ fun ComicDetailPane(
                         .width(130.dp)
                         .aspectRatio(0.72f)
                         .clip(RectangleShape)
-                        .border(BorderStroke(2.dp, ComicYellow.copy(alpha = 0.8f)), RectangleShape)
+                        .border(BorderStroke(2.dp, if (isDark) ComicYellow.copy(alpha = 0.8f) else ComicInkBlack.copy(alpha = 0.8f)), RectangleShape)
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
                     if (comic.coverPath != null && File(comic.coverPath).exists()) {
@@ -132,7 +135,7 @@ fun ComicDetailPane(
                                     fontFamily = ComicTitleFontFamily,
                                     letterSpacing = 0.8.sp
                                 ),
-                                color = ComicYellow,
+                                color = if (isDark) ComicYellow else ComicInkBlack,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(8.dp)
                             )
@@ -150,7 +153,7 @@ fun ComicDetailPane(
                             fontSize = 24.sp,
                             letterSpacing = 1.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicInkBlack
                     )
 
                     if (comic.metadata.series.isNotBlank() && comic.metadata.series != comic.metadata.title) {
@@ -170,7 +173,7 @@ fun ComicDetailPane(
                             onClick = {},
                             label = { Text(comic.metadata.genre.uppercase(), fontSize = 11.sp) },
                             shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
-                            border = BorderStroke(1.dp, ComicYellow.copy(alpha = 0.5f))
+                            border = BorderStroke(1.dp, if (isDark) ComicYellow.copy(alpha = 0.5f) else ComicInkBlack.copy(alpha = 0.5f))
                         )
                     }
 
@@ -182,7 +185,7 @@ fun ComicDetailPane(
                             fontFamily = ComicTitleFontFamily,
                             letterSpacing = 0.8.sp
                         ),
-                        color = ComicYellow
+                        color = if (isDark) ComicYellow else ComicRedDark
                     )
                 }
             }
@@ -269,7 +272,7 @@ fun ComicDetailPane(
                     fontFamily = ComicTitleFontFamily,
                     letterSpacing = 1.sp
                 ),
-                color = ComicYellow
+                color = if (isDark) ComicYellow else ComicInkBlack
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -297,7 +300,7 @@ fun ComicDetailPane(
                     fontFamily = ComicTitleFontFamily,
                     letterSpacing = 1.sp
                 ),
-                color = ComicYellow
+                color = if (isDark) ComicYellow else ComicInkBlack
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -328,6 +331,7 @@ fun ComicDetailPane(
 
 @Composable
 private fun CreditRow(label: String, value: String) {
+    val isDark = isSystemInDarkTheme()
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -339,7 +343,7 @@ private fun CreditRow(label: String, value: String) {
                 fontFamily = ComicTitleFontFamily,
                 letterSpacing = 0.6.sp
             ),
-            color = ComicYellow
+            color = if (isDark) ComicYellow else ComicInkBlack
         )
         Text(
             text = value,

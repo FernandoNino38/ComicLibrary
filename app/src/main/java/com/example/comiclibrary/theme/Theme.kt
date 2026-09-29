@@ -40,12 +40,18 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = ComicYellow,
-    onPrimary = ComicInkBlack,
+    primary = ComicRedDark,
+    onPrimary = Color.White,
+    primaryContainer = ComicYellow,
+    onPrimaryContainer = ComicInkBlack,
     secondary = ComicRed,
     onSecondary = Color.White,
-    tertiary = ComicCyan,
-    onTertiary = ComicInkBlack,
+    secondaryContainer = Color(0xFFFFEBEE),
+    onSecondaryContainer = ComicRedDark,
+    tertiary = Color(0xFF00838F),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFFE0F7FA),
+    onTertiaryContainer = Color(0xFF006064),
     background = LightBackground,
     onBackground = ComicInkBlack,
     surface = LightSurface,
