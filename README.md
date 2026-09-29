@@ -10,6 +10,16 @@
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/library.png" width="30%" />
+  <img src="docs/screenshots/reader.png" width="30%" />
+  <img src="docs/screenshots/settings.png" width="30%" />
+</p>
+
+---
+
 ## 🎨 Visual Identity & Comic Book Aesthetic
 
 Comic Library was designed from the ground up to immerse readers in the classic look and feel of comic books:
