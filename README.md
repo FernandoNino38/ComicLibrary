@@ -22,7 +22,9 @@ Comic Library was designed from the ground up to immerse readers in the classic 
 ## ✨ Features
 
 - **🚀 Streaming CBZ Archive Engine**: Reads `.cbz` and `.zip` archives on demand directly from Android's Storage Access Framework (SAF) with zero unnecessary disk extraction.
-- **🖤 Pure AMOLED Dark Mode (`#000000`)**: Saves battery on OLED displays and prevents eye strain during extended reading sessions.
+- **🖤 Pure AMOLED Dark Mode (`#000000`) & ☀️ Comic Paper Light Mode**:
+  - **AMOLED Dark Mode**: Saves battery on OLED displays and prevents eye strain during extended night reading sessions.
+  - **High-Contrast Comic Paper Light Mode**: Crisp vintage paper background with deep comic ink black lettering (`#000000`), vibrant comic action stickers, and deep crimson accents for maximum legibility under bright sunlight.
 - **🔍 Advanced Multi-Touch & On-Screen Zoom**:
   - Seamless pinch-to-zoom gesture and double-tap zoom.
   - Dedicated on-screen zoom control bar with instant percentage pills (`100%`, `150%`, `200%`, `400%`) and fit-to-screen reset.
@@ -40,7 +42,7 @@ Comic Library was designed from the ground up to immerse readers in the classic 
   - **Long-Press Dossier**: Long-pressing any comic opens a detailed comic book technical sheet displaying complete metadata, file size, storage URI, and quick actions.
 - **🔍 Instant Library Search & Filters**:
   - Expandable search icon bar in the library header.
-  - Action badge filters: *Todos*, *Lendo*, *Não Lidos*, *Concluídos*, *Mangás*, and *Favoritos*.
+  - Action badge filters: *All*, *Reading*, *Unread*, *Completed*, *Manga*, and *Favorites*.
 - **🌐 Bilingual Internationalization (i18n)**:
   - English and Portuguese automatically matching Android system settings.
 - **📱 Adaptive Form Factor Layouts**:
