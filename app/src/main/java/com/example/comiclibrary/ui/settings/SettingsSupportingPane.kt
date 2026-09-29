@@ -2,6 +2,7 @@ package com.example.comiclibrary.ui.settings
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.comiclibrary.R
+import com.example.comiclibrary.theme.ComicCyan
+import com.example.comiclibrary.theme.ComicInkBlack
+import com.example.comiclibrary.theme.ComicTitleFontFamily
+import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.SquircleShape
 import com.example.comiclibrary.ui.library.LibraryViewModel
@@ -94,14 +99,22 @@ fun SettingsSupportingPane(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = stringResource(R.string.settings_title),
-            style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onBackground
+            text = stringResource(R.string.settings_title).uppercase(),
+            style = MaterialTheme.typography.displaySmall.copy(
+                fontFamily = ComicTitleFontFamily,
+                fontSize = 38.sp,
+                letterSpacing = 2.sp
+            ),
+            color = ComicYellow
         )
 
         Text(
-            text = stringResource(R.string.settings_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
+            text = stringResource(R.string.settings_subtitle).uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = ComicTitleFontFamily,
+                fontSize = 12.sp,
+                letterSpacing = 0.8.sp
+            ),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
@@ -117,12 +130,16 @@ fun SettingsSupportingPane(
                     Icon(
                         Icons.AutoMirrored.Filled.LibraryBooks,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = ComicYellow
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.settings_import_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        text = stringResource(R.string.settings_import_title).uppercase(),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                 }
 
@@ -138,19 +155,23 @@ fun SettingsSupportingPane(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f))
+                            .clip(SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.importing_progress_format, current, total),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary
+                            text = stringResource(R.string.importing_progress_format, current, total).uppercase(),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 0.8.sp
+                            ),
+                            color = ComicYellow
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         LinearProgressIndicator(
                             progress = { if (total > 0) current.toFloat() / total.toFloat() else 0f },
-                            modifier = Modifier.fillMaxWidth().height(4.dp)
+                            modifier = Modifier.fillMaxWidth().height(4.dp),
+                            color = ComicYellow
                         )
                     }
                 }
@@ -166,11 +187,22 @@ fun SettingsSupportingPane(
                             )
                         },
                         modifier = Modifier.weight(1f),
-                        shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
+                        shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.5f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ComicYellow,
+                            contentColor = ComicInkBlack
+                        )
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                        Icon(Icons.Default.Add, contentDescription = null, tint = ComicInkBlack)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(stringResource(R.string.settings_btn_files), fontSize = 13.sp)
+                        Text(
+                            stringResource(R.string.settings_btn_files).uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 1.sp
+                            ),
+                            color = ComicInkBlack
+                        )
                     }
 
                     OutlinedButton(
@@ -178,15 +210,23 @@ fun SettingsSupportingPane(
                             folderPickerLauncher.launch(null)
                         },
                         modifier = Modifier.weight(1f),
-                        shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
+                        shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.5f),
+                        border = BorderStroke(1.5.dp, ComicYellow)
                     ) {
                         Icon(
                             Icons.Default.FolderOpen,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = ComicYellow
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(stringResource(R.string.settings_btn_folder), fontSize = 13.sp)
+                        Text(
+                            stringResource(R.string.settings_btn_folder).uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 1.sp
+                            ),
+                            color = ComicYellow
+                        )
                     }
                 }
             }
@@ -199,11 +239,15 @@ fun SettingsSupportingPane(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Memory, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Default.Memory, contentDescription = null, tint = ComicYellow)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.settings_memory_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        text = stringResource(R.string.settings_memory_title).uppercase(),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                 }
 
@@ -216,7 +260,7 @@ fun SettingsSupportingPane(
                 Text(
                     text = memoryStatsText,
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.tertiary
+                    color = ComicCyan
                 )
             }
         }
@@ -228,11 +272,15 @@ fun SettingsSupportingPane(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Security, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Default.Security, contentDescription = null, tint = ComicYellow)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.settings_storage_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        text = stringResource(R.string.settings_storage_title).uppercase(),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                 }
 
@@ -257,8 +305,12 @@ fun SettingsSupportingPane(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.settings_cache_title),
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                        text = stringResource(R.string.settings_cache_title).uppercase(),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                     Text(
                         text = stringResource(R.string.settings_cache_desc),
@@ -272,10 +324,13 @@ fun SettingsSupportingPane(
                         System.gc()
                         memoryStatsText = cacheClearedMsg
                     },
-                    shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.6f),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceTint)
+                    shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.5f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ComicYellow,
+                        contentColor = ComicInkBlack
+                    )
                 ) {
-                    Icon(Icons.Default.CleaningServices, contentDescription = null)
+                    Icon(Icons.Default.CleaningServices, contentDescription = null, tint = ComicInkBlack)
                 }
             }
         }
@@ -294,8 +349,12 @@ fun SettingsSupportingPane(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.settings_app_info_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        text = stringResource(R.string.settings_app_info_title).uppercase(),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                 }
 
@@ -309,9 +368,13 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "0.8 (Build 8)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.primary
+                        text = "0.9 (Build 9)",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            fontSize = 15.sp,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                 }
 
@@ -325,8 +388,11 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "MVI • MD3 AMOLED • Spring",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        text = "MVI • MD3 AMOLED • COMIC",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.6.sp
+                        ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }

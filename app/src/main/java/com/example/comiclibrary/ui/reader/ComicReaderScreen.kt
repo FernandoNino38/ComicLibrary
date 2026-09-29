@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -77,6 +78,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.comiclibrary.R
 import com.example.comiclibrary.data.model.ComicBook
+import com.example.comiclibrary.theme.ComicCyan
+import com.example.comiclibrary.theme.ComicPanelBorder
+import com.example.comiclibrary.theme.ComicTitleFontFamily
+import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.PageScrubber
 import com.example.comiclibrary.ui.components.SquircleShape
@@ -474,19 +479,27 @@ private fun ReaderReadyView(
 
                         Column {
                             Text(
-                                text = state.comic.metadata.displayTitle,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface,
+                                text = state.comic.metadata.displayTitle.uppercase(),
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    fontSize = 17.sp,
+                                    letterSpacing = 0.8.sp
+                                ),
+                                color = ComicYellow,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = if (state.isManga) {
-                                    stringResource(R.string.reader_mode_manga_title)
+                                    stringResource(R.string.reader_mode_manga_title).uppercase()
                                 } else {
-                                    stringResource(R.string.reader_mode_western_title)
+                                    stringResource(R.string.reader_mode_western_title).uppercase()
                                 },
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 0.5.sp
+                                ),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -501,37 +514,55 @@ private fun ReaderReadyView(
                             onClick = {
                                 currentZoomScale = if (currentZoomScale > 1.05f) 1f else 2f
                             },
-                            label = { Text("${(currentZoomScale * 100).toInt()}%", fontSize = 12.sp) },
+                            label = {
+                                Text(
+                                    "${(currentZoomScale * 100).toInt()}%",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 12.sp,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                )
+                            },
                             icon = {
                                 Icon(
                                     imageVector = if (currentZoomScale > 1.05f) Icons.Default.ZoomOut else Icons.Default.ZoomIn,
                                     contentDescription = stringResource(R.string.reader_zoom_label),
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = ComicYellow,
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
                             ),
-                            border = null
+                            border = BorderStroke(1.dp, ComicYellow.copy(alpha = 0.5f))
                         )
 
                         // Reading Direction Toggle Chip
                         SuggestionChip(
                             onClick = { onIntent(ReaderIntent.ToggleReadingDirection) },
-                            label = { Text(if (state.isManga) "RTL" else "LTR", fontSize = 12.sp) },
+                            label = {
+                                Text(
+                                    if (state.isManga) "RTL" else "LTR",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 12.sp,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                )
+                            },
                             icon = {
                                 Icon(
                                     Icons.Default.SwapHoriz,
                                     contentDescription = stringResource(R.string.reader_toggle_reading_direction),
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = ComicYellow,
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
                             colors = SuggestionChipDefaults.suggestionChipColors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
                             ),
-                            border = null
+                            border = BorderStroke(1.dp, ComicYellow.copy(alpha = 0.5f))
                         )
                     }
                 }
@@ -550,7 +581,8 @@ private fun ReaderReadyView(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f),
                 tonalElevation = 8.dp,
                 shadowElevation = 16.dp,
-                shape = RectangleShape
+                shape = RectangleShape,
+                border = BorderStroke(1.dp, ComicPanelBorder)
             ) {
                 Column(
                     modifier = Modifier
@@ -574,14 +606,15 @@ private fun ReaderReadyView(
                             Icon(
                                 Icons.Default.ZoomOut,
                                 contentDescription = stringResource(R.string.reader_zoom_out),
-                                tint = if (currentZoomScale > 1.05f) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                tint = if (currentZoomScale > 1.05f) ComicYellow else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                             )
                         }
 
                         Surface(
                             onClick = { currentZoomScale = if (currentZoomScale > 1.05f) 1f else 2f },
-                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            border = BorderStroke(1.5.dp, ComicYellow.copy(alpha = 0.7f)),
                             modifier = Modifier.padding(horizontal = 6.dp)
                         ) {
                             Row(
@@ -592,13 +625,17 @@ private fun ReaderReadyView(
                                     imageVector = Icons.Default.ZoomIn,
                                     contentDescription = null,
                                     modifier = Modifier.size(15.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = ComicYellow
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     text = "${(currentZoomScale * 100).toInt()}%",
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 14.sp,
+                                        letterSpacing = 0.8.sp
+                                    ),
+                                    color = ComicYellow
                                 )
                             }
                         }
@@ -610,7 +647,7 @@ private fun ReaderReadyView(
                             Icon(
                                 Icons.Default.ZoomIn,
                                 contentDescription = stringResource(R.string.reader_zoom_in),
-                                tint = if (currentZoomScale < 4f) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                                tint = if (currentZoomScale < 4f) ComicYellow else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
                             )
                         }
 
@@ -618,16 +655,25 @@ private fun ReaderReadyView(
                             Spacer(modifier = Modifier.width(8.dp))
                             OutlinedButton(
                                 onClick = { currentZoomScale = 1f },
-                                shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f),
+                                shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                                border = BorderStroke(1.dp, ComicYellow),
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp)
                             ) {
                                 Icon(
                                     Icons.Default.FitScreen,
                                     contentDescription = null,
+                                    tint = ComicYellow,
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.reader_zoom_fit), fontSize = 11.sp)
+                                Text(
+                                    stringResource(R.string.reader_zoom_fit).uppercase(),
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        letterSpacing = 0.5.sp
+                                    ),
+                                    color = ComicYellow
+                                )
                             }
                         }
                     }
@@ -672,9 +718,13 @@ private fun ReaderReadyView(
                                 R.string.reader_page_indicator_format,
                                 pagerState.currentPage + 1,
                                 totalPages
+                            ).uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                fontSize = 14.sp,
+                                letterSpacing = 1.sp
                             ),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = ComicYellow
                         )
 
                         IconButton(onClick = {

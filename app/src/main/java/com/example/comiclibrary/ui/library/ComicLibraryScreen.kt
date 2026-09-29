@@ -4,11 +4,14 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +40,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -78,7 +82,12 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.comiclibrary.R
 import com.example.comiclibrary.data.model.ComicBook
+import com.example.comiclibrary.theme.ComicCyan
+import com.example.comiclibrary.theme.ComicInkBlack
+import com.example.comiclibrary.theme.ComicPanelBorder
+import com.example.comiclibrary.theme.ComicRed
 import com.example.comiclibrary.theme.ComicTitleFontFamily
+import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.SquircleShape
 import java.io.File
@@ -153,45 +162,56 @@ fun ComicLibraryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            // Authentic Comic/Onomatopoeia Font Title
-                            Text(
-                                text = stringResource(R.string.nav_library),
-                                style = MaterialTheme.typography.displaySmall.copy(
-                                    fontFamily = ComicTitleFontFamily,
-                                    fontSize = 42.sp,
-                                    letterSpacing = 2.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onBackground
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_comic_library_logo),
+                                contentDescription = null,
+                                modifier = Modifier.size(46.dp)
                             )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                // Authentic Comic/Onomatopoeia Font Title
+                                Text(
+                                    text = stringResource(R.string.nav_library).uppercase(),
+                                    style = MaterialTheme.typography.displaySmall.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 38.sp,
+                                        letterSpacing = 2.sp
+                                    ),
+                                    color = ComicYellow
+                                )
 
-                            Spacer(modifier = Modifier.height(2.dp))
-
-                            Text(
-                                text = if (comics.isEmpty()) {
-                                    stringResource(R.string.library_empty_count)
-                                } else {
-                                    stringResource(
-                                        R.string.library_stats_format,
-                                        comics.size,
-                                        comics.count { it.lastReadPage > 0 }
-                                    )
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                                Text(
+                                    text = if (comics.isEmpty()) {
+                                        stringResource(R.string.library_empty_count).uppercase()
+                                    } else {
+                                        stringResource(
+                                            R.string.library_stats_format,
+                                            comics.size,
+                                            comics.count { it.lastReadPage > 0 }
+                                        ).uppercase()
+                                    },
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 12.sp,
+                                        letterSpacing = 0.8.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         IconButton(
                             onClick = { isSearchExpanded = true },
                             modifier = Modifier
-                                .clip(SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f))
-                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .clip(SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
+                                .background(MaterialTheme.colorScheme.surfaceContainer)
+                                .border(BorderStroke(1.5.dp, ComicYellow.copy(alpha = 0.6f)), SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = stringResource(R.string.search_comics),
-                                tint = MaterialTheme.colorScheme.onSurface
+                                tint = ComicYellow
                             )
                         }
                     }
@@ -199,12 +219,17 @@ fun ComicLibraryScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text(stringResource(R.string.search_placeholder)) },
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.search_placeholder),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
                         leadingIcon = {
                             Icon(
                                 Icons.Default.Search,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = ComicYellow
                             )
                         },
                         trailingIcon = {
@@ -214,17 +239,18 @@ fun ComicLibraryScreen(
                             }) {
                                 Icon(
                                     Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.close_search)
+                                    contentDescription = stringResource(R.string.close_search),
+                                    tint = ComicYellow
                                 )
                             }
                         },
                         singleLine = true,
-                        shape = SquircleShape(cornerRadiusDp = 18.dp, smoothing = 0.6f),
+                        shape = SquircleShape(cornerRadiusDp = 16.dp, smoothing = 0.5f),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = Color.Transparent
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            focusedBorderColor = ComicYellow,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -272,24 +298,40 @@ fun ComicLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     filterOptions.forEach { (key, label) ->
+                        val isSelected = selectedFilterKey == key
                         FilterChip(
-                            selected = selectedFilterKey == key,
+                            selected = isSelected,
                             onClick = { selectedFilterKey = key },
-                            label = { Text(label, fontSize = 13.sp) },
-                            shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.6f),
+                            label = {
+                                Text(
+                                    text = label.uppercase(),
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 13.sp,
+                                        letterSpacing = 1.sp
+                                    )
+                                )
+                            },
+                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                            border = BorderStroke(
+                                1.5.dp,
+                                if (isSelected) ComicYellow else MaterialTheme.colorScheme.outlineVariant
+                            ),
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                selectedLabelColor = MaterialTheme.colorScheme.primary
+                                selectedContainerColor = ComicYellow,
+                                selectedLabelColor = ComicInkBlack,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                labelColor = MaterialTheme.colorScheme.onSurface
                             )
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
             }
 
             if (isLoading && comics.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    CircularProgressIndicator(color = ComicYellow)
                 }
             } else if (comics.isEmpty()) {
                 // Empty state with navigation to Settings for importing
@@ -319,9 +361,13 @@ fun ComicLibraryScreen(
                             Spacer(modifier = Modifier.height(16.dp))
 
                             Text(
-                                text = stringResource(R.string.empty_library_title),
-                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface
+                                text = stringResource(R.string.empty_library_title).uppercase(),
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    fontSize = 24.sp,
+                                    letterSpacing = 1.sp
+                                ),
+                                color = ComicYellow
                             )
 
                             Spacer(modifier = Modifier.height(8.dp))
@@ -337,11 +383,23 @@ fun ComicLibraryScreen(
 
                             Button(
                                 onClick = onNavigateToSettings,
-                                shape = SquircleShape(cornerRadiusDp = 16.dp, smoothing = 0.6f)
+                                shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = ComicYellow,
+                                    contentColor = ComicInkBlack
+                                )
                             ) {
-                                Icon(Icons.Default.Settings, contentDescription = null)
+                                Icon(Icons.Default.Settings, contentDescription = null, tint = ComicInkBlack)
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text(stringResource(R.string.btn_go_to_settings))
+                                Text(
+                                    stringResource(R.string.btn_go_to_settings).uppercase(),
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 15.sp,
+                                        letterSpacing = 1.sp
+                                    ),
+                                    color = ComicInkBlack
+                                )
                             }
                         }
                     }
@@ -439,13 +497,16 @@ private fun ComicFocusBlockItem(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .background(MaterialTheme.colorScheme.surfaceContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = comic.metadata.displayTitle.take(30),
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        text = comic.metadata.displayTitle.take(30).uppercase(),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(12.dp)
                     )
@@ -462,23 +523,28 @@ private fun ComicFocusBlockItem(
                 Icon(
                     imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = stringResource(R.string.favorite_cd),
-                    tint = if (comic.isFavorite) Color.Red else Color.White.copy(alpha = 0.8f)
+                    tint = if (comic.isFavorite) ComicRed else Color.White.copy(alpha = 0.85f)
                 )
             }
 
-            // Manga badge if RTL
+            // Manga badge if RTL - Comic Caption Box Style
             if (comic.metadata.isManga) {
                 Surface(
-                    color = Color.Black.copy(alpha = 0.85f),
+                    color = ComicRed,
                     shape = RectangleShape,
+                    border = BorderStroke(1.dp, ComicInkBlack),
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(6.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.badge_manga),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = Color(0xFFFF4081),
+                        text = stringResource(R.string.badge_manga).uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            fontSize = 11.sp,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = Color.White,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
@@ -487,37 +553,44 @@ private fun ComicFocusBlockItem(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Reading Progress Bar
+        // Reading Progress Bar in Comic Cyan / Comic Yellow
         if (comic.totalPages > 0) {
             LinearProgressIndicator(
                 progress = { comic.progressPercent },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(3.dp)
+                    .height(3.5.dp)
                     .clip(RectangleShape),
-                color = if (comic.isFinished) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                color = if (comic.isFinished) ComicYellow else ComicCyan,
                 trackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
             Spacer(modifier = Modifier.height(6.dp))
         }
 
-        // Title & Series
+        // Title & Series in Bangers Comic Font
         Text(
-            text = comic.metadata.displayTitle,
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+            text = comic.metadata.displayTitle.uppercase(),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = ComicTitleFontFamily,
+                letterSpacing = 0.5.sp
+            ),
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
 
-        // Subtitle
+        // Subtitle in Comic Caption Style
         val subtitle = buildString {
             if (comic.metadata.year != null) append("${comic.metadata.year} • ")
             append(comic.totalPages.toString() + " " + stringResource(R.string.pages_count_format, comic.totalPages).replace(comic.totalPages.toString(), "").trim())
         }
         Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
+            text = subtitle.uppercase(),
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontFamily = ComicTitleFontFamily,
+                fontSize = 11.sp,
+                letterSpacing = 0.6.sp
+            ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -527,6 +600,7 @@ private fun ComicFocusBlockItem(
 
 /**
  * Center Modal Dialog displaying all possible comic details upon long-press.
+ * Styled as an authentic comic book dossier.
  */
 @Composable
 fun ComicDetailModalDialog(
@@ -546,10 +620,11 @@ fun ComicDetailModalDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
-            shape = SquircleShape(cornerRadiusDp = 24.dp, smoothing = 0.6f),
-            color = MaterialTheme.colorScheme.surface,
+            shape = SquircleShape(cornerRadiusDp = 20.dp, smoothing = 0.5f),
+            color = MaterialTheme.colorScheme.surfaceContainer,
             tonalElevation = 8.dp,
             shadowElevation = 16.dp,
+            border = BorderStroke(2.dp, ComicYellow),
             modifier = Modifier
                 .fillMaxWidth(0.92f)
                 .padding(vertical = 24.dp)
@@ -568,7 +643,8 @@ fun ComicDetailModalDialog(
                         modifier = Modifier
                             .width(84.dp)
                             .aspectRatio(0.72f)
-                            .clip(SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f))
+                            .clip(RectangleShape)
+                            .border(BorderStroke(1.5.dp, ComicYellow.copy(alpha = 0.7f)), RectangleShape)
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     ) {
                         if (comic.coverPath != null && File(comic.coverPath).exists()) {
@@ -588,7 +664,7 @@ fun ComicDetailModalDialog(
                                     .background(MaterialTheme.colorScheme.primaryContainer),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = ComicYellow)
                             }
                         }
                     }
@@ -602,9 +678,13 @@ fun ComicDetailModalDialog(
                             verticalAlignment = Alignment.Top
                         ) {
                             Text(
-                                text = comic.metadata.displayTitle,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface,
+                                text = comic.metadata.displayTitle.uppercase(),
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    fontSize = 20.sp,
+                                    letterSpacing = 0.8.sp
+                                ),
+                                color = ComicYellow,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
@@ -617,23 +697,29 @@ fun ComicDetailModalDialog(
                                 Icon(
                                     imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                     contentDescription = stringResource(R.string.favorite_cd),
-                                    tint = if (comic.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = if (comic.isFavorite) ComicRed else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
 
                         if (comic.metadata.series.isNotBlank()) {
                             Text(
-                                text = stringResource(R.string.dialog_series, comic.metadata.series),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary
+                                text = stringResource(R.string.dialog_series, comic.metadata.series).uppercase(),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    letterSpacing = 0.5.sp
+                                ),
+                                color = ComicCyan
                             )
                         }
 
                         if (comic.metadata.publisher.isNotBlank()) {
                             Text(
-                                text = stringResource(R.string.dialog_publisher, comic.metadata.publisher),
-                                style = MaterialTheme.typography.bodySmall,
+                                text = stringResource(R.string.dialog_publisher, comic.metadata.publisher).uppercase(),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    letterSpacing = 0.5.sp
+                                ),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -643,9 +729,13 @@ fun ComicDetailModalDialog(
                                 R.string.dialog_stats_format,
                                 comic.totalPages,
                                 (comic.progressPercent * 100).toInt()
+                            ).uppercase(),
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                fontSize = 12.sp,
+                                letterSpacing = 0.8.sp
                             ),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.secondary
+                            color = ComicYellow
                         )
                     }
                 }
@@ -723,9 +813,12 @@ fun ComicDetailModalDialog(
                     if (comic.metadata.summary.isNotBlank()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = stringResource(R.string.dialog_synopsis),
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = stringResource(R.string.dialog_synopsis).uppercase(),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 0.8.sp
+                            ),
+                            color = ComicYellow
                         )
                         Text(
                             text = comic.metadata.summary,
@@ -745,19 +838,38 @@ fun ComicDetailModalDialog(
                     OutlinedButton(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
-                        shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
+                        shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.5f),
+                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant)
                     ) {
-                        Text(stringResource(R.string.btn_close))
+                        Text(
+                            stringResource(R.string.btn_close).uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 1.sp
+                            )
+                        )
                     }
 
                     Button(
                         onClick = onReadClick,
                         modifier = Modifier.weight(1.5f),
-                        shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.6f)
+                        shape = SquircleShape(cornerRadiusDp = 12.dp, smoothing = 0.5f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ComicYellow,
+                            contentColor = ComicInkBlack
+                        )
                     ) {
-                        Icon(Icons.Default.AutoStories, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Icon(Icons.Default.AutoStories, contentDescription = null, modifier = Modifier.size(18.dp), tint = ComicInkBlack)
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(stringResource(R.string.btn_read_now))
+                        Text(
+                            stringResource(R.string.btn_read_now).uppercase(),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                fontSize = 15.sp,
+                                letterSpacing = 1.sp
+                            ),
+                            color = ComicInkBlack
+                        )
                     }
                 }
             }
@@ -773,9 +885,13 @@ private fun DetailInfoRow(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = ComicTitleFontFamily,
+                fontSize = 12.sp,
+                letterSpacing = 0.8.sp
+            ),
+            color = ComicYellow
         )
         Text(
             text = value,

@@ -16,31 +16,31 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Material Design 3 Elevated Focus Block Container.
- * An expansive card container with elevated squircle geometry (0.6f smoothing)
- * that organizes content into clear ergonomic hierarchies using MD3 tonal elevation.
+ * Comic Book Panel Container (FocusBlock).
+ * Styled like an authentic comic book panel with inky outlines and solid depth.
  */
 @Composable
 fun FocusBlock(
     modifier: Modifier = Modifier,
-    cornerRadius: Dp = 24.dp,
-    elevation: Dp = 3.dp,
+    cornerRadius: Dp = 20.dp,
+    elevation: Dp = 4.dp,
     containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
-    borderColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+    borderWidth: Dp = 1.5.dp,
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val squircle = SquircleShape(cornerRadiusDp = cornerRadius, smoothing = 0.6f)
+    val squircle = SquircleShape(cornerRadiusDp = cornerRadius, smoothing = 0.5f)
 
     Surface(
         modifier = modifier
-            .shadow(elevation, shape = squircle, spotColor = Color.Black.copy(alpha = 0.35f))
+            .shadow(elevation, shape = squircle, spotColor = Color.Black.copy(alpha = 0.6f))
             .clip(squircle)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
         shape = squircle,
         color = containerColor,
         tonalElevation = elevation,
-        border = BorderStroke(1.dp, borderColor)
+        border = BorderStroke(borderWidth, borderColor)
     ) {
         Box(
             modifier = Modifier.padding(16.dp),

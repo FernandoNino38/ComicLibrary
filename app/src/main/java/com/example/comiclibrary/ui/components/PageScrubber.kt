@@ -14,13 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import com.example.comiclibrary.R
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.comiclibrary.R
+import com.example.comiclibrary.theme.ComicTitleFontFamily
+import com.example.comiclibrary.theme.ComicYellow
 
 /**
- * iOS-style interactive page scrubber bar for continuous and discrete comic page jumping.
+ * Comic-styled interactive page scrubber bar for continuous and discrete comic page jumping.
  */
 @Composable
 fun PageScrubber(
@@ -43,16 +44,21 @@ fun PageScrubber(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "${stringResource(R.string.reader_page_prefix)} ${currentPage + 1}",
+                text = "${stringResource(R.string.reader_page_prefix).uppercase()} ${currentPage + 1}",
                 style = MaterialTheme.typography.labelLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    fontFamily = ComicTitleFontFamily,
+                    fontSize = 15.sp,
+                    letterSpacing = 1.sp
                 ),
-                color = MaterialTheme.colorScheme.onSurface
+                color = ComicYellow
             )
             Text(
-                text = "${stringResource(R.string.reader_page_of)} $totalPages",
-                style = MaterialTheme.typography.labelMedium,
+                text = "${stringResource(R.string.reader_page_of).uppercase()} $totalPages",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontFamily = ComicTitleFontFamily,
+                    fontSize = 13.sp,
+                    letterSpacing = 0.8.sp
+                ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -65,8 +71,8 @@ fun PageScrubber(
             valueRange = 0f..(totalPages - 1).toFloat(),
             steps = (totalPages - 2).coerceAtLeast(0),
             colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
+                thumbColor = ComicYellow,
+                activeTrackColor = ComicYellow,
                 inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             ),
             modifier = Modifier

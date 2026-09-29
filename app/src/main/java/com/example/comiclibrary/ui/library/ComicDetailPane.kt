@@ -1,6 +1,8 @@
 package com.example.comiclibrary.ui.library
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +44,11 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.comiclibrary.data.model.ComicBook
+import com.example.comiclibrary.theme.ComicCyan
+import com.example.comiclibrary.theme.ComicInkBlack
+import com.example.comiclibrary.theme.ComicRed
+import com.example.comiclibrary.theme.ComicTitleFontFamily
+import com.example.comiclibrary.theme.ComicYellow
 import com.example.comiclibrary.ui.components.FocusBlock
 import com.example.comiclibrary.ui.components.SquircleShape
 import java.io.File
@@ -93,12 +100,13 @@ fun ComicDetailPane(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Cover Thumbnail with squircle shape
+                // Cover Thumbnail with comic border
                 Box(
                     modifier = Modifier
                         .width(130.dp)
                         .aspectRatio(0.72f)
                         .clip(RectangleShape)
+                        .border(BorderStroke(2.dp, ComicYellow.copy(alpha = 0.8f)), RectangleShape)
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
                     if (comic.coverPath != null && File(comic.coverPath).exists()) {
@@ -115,13 +123,16 @@ fun ComicDetailPane(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                .background(MaterialTheme.colorScheme.surfaceContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = comic.metadata.displayTitle.take(30),
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                text = comic.metadata.displayTitle.take(30).uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    letterSpacing = 0.8.sp
+                                ),
+                                color = ComicYellow,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(8.dp)
                             )
@@ -133,16 +144,23 @@ fun ComicDetailPane(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = comic.metadata.displayTitle,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = comic.metadata.displayTitle.uppercase(),
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            fontSize = 24.sp,
+                            letterSpacing = 1.sp
+                        ),
+                        color = ComicYellow
                     )
 
                     if (comic.metadata.series.isNotBlank() && comic.metadata.series != comic.metadata.title) {
                         Text(
-                            text = "Série: ${comic.metadata.series}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = "Série: ${comic.metadata.series}".uppercase(),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = ComicCyan
                         )
                     }
 
@@ -150,17 +168,21 @@ fun ComicDetailPane(
                         Spacer(modifier = Modifier.height(4.dp))
                         SuggestionChip(
                             onClick = {},
-                            label = { Text(comic.metadata.genre, fontSize = 11.sp) },
-                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.6f)
+                            label = { Text(comic.metadata.genre.uppercase(), fontSize = 11.sp) },
+                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                            border = BorderStroke(1.dp, ComicYellow.copy(alpha = 0.5f))
                         )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "${comic.totalPages} páginas  •  ${if (comic.metadata.isManga) "Mangá (RTL)" else "Ocidental (LTR)"}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        text = "${comic.totalPages} PÁGINAS  •  ${if (comic.metadata.isManga) "MANGÁ (RTL)" else "OCIDENTAL (LTR)"}",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontFamily = ComicTitleFontFamily,
+                            letterSpacing = 0.8.sp
+                        ),
+                        color = ComicYellow
                     )
                 }
             }
@@ -175,20 +197,31 @@ fun ComicDetailPane(
         ) {
             Button(
                 onClick = { onReadClick(comic) },
-                shape = SquircleShape(cornerRadiusDp = 18.dp, smoothing = 0.6f),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ComicYellow,
+                    contentColor = ComicInkBlack
+                ),
                 modifier = Modifier
                     .weight(1f)
                     .height(54.dp)
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = ComicInkBlack)
                 Spacer(modifier = Modifier.width(8.dp))
                 val actionText = if (comic.lastReadPage > 0) {
                     "Continuar (Pág. ${comic.lastReadPage + 1})"
                 } else {
                     "Iniciar Leitura"
                 }
-                Text(actionText, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    actionText.uppercase(),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = ComicTitleFontFamily,
+                        fontSize = 16.sp,
+                        letterSpacing = 1.sp
+                    ),
+                    color = ComicInkBlack
+                )
             }
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -198,13 +231,13 @@ fun ComicDetailPane(
                 onClick = { onToggleFavorite(comic.id) },
                 modifier = Modifier
                     .size(54.dp)
-                    .clip(SquircleShape(cornerRadiusDp = 18.dp, smoothing = 0.6f))
+                    .clip(SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             ) {
                 Icon(
                     imageVector = if (comic.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favorito",
-                    tint = if (comic.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (comic.isFavorite) ComicRed else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -215,7 +248,7 @@ fun ComicDetailPane(
                 onClick = { onDeleteComic(comic.id) },
                 modifier = Modifier
                     .size(54.dp)
-                    .clip(SquircleShape(cornerRadiusDp = 18.dp, smoothing = 0.6f))
+                    .clip(SquircleShape(cornerRadiusDp = 14.dp, smoothing = 0.5f))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             ) {
                 Icon(
@@ -231,9 +264,12 @@ fun ComicDetailPane(
         // VIEWING AREA: Synopsis / Summary Focus Block
         if (comic.metadata.summary.isNotBlank()) {
             Text(
-                text = "Sinopse",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
+                text = "SINOPSE",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = ComicTitleFontFamily,
+                    letterSpacing = 1.sp
+                ),
+                color = ComicYellow
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -256,9 +292,12 @@ fun ComicDetailPane(
         val credits = comic.metadata.creatorsSummary
         if (credits.isNotBlank()) {
             Text(
-                text = "Ficha Técnica",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onBackground
+                text = "FICHA TÉCNICA",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = ComicTitleFontFamily,
+                    letterSpacing = 1.sp
+                ),
+                color = ComicYellow
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -267,20 +306,20 @@ fun ComicDetailPane(
                 cornerRadius = 18.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (comic.metadata.writer.isNotBlank()) {
-                        CreditRow(label = "Roteirista", value = comic.metadata.writer)
+                        CreditRow(label = "ROTEIRISTA", value = comic.metadata.writer)
                     }
                     if (comic.metadata.penciller.isNotBlank()) {
-                        CreditRow(label = "Desenhista", value = comic.metadata.penciller)
+                        CreditRow(label = "DESENHISTA", value = comic.metadata.penciller)
                     }
                     if (comic.metadata.inker.isNotBlank()) {
-                        CreditRow(label = "Arte-finalista", value = comic.metadata.inker)
+                        CreditRow(label = "ARTE-FINALISTA", value = comic.metadata.inker)
                     }
                     if (comic.metadata.publisher.isNotBlank()) {
-                        CreditRow(label = "Editora", value = comic.metadata.publisher)
+                        CreditRow(label = "EDITORA", value = comic.metadata.publisher)
                     }
-                    CreditRow(label = "Arquivo", value = comic.fileName)
+                    CreditRow(label = "ARQUIVO", value = comic.fileName)
                 }
             }
         }
@@ -291,12 +330,16 @@ fun ComicDetailPane(
 private fun CreditRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = ComicTitleFontFamily,
+                letterSpacing = 0.6.sp
+            ),
+            color = ComicYellow
         )
         Text(
             text = value,

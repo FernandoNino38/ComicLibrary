@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
@@ -22,6 +23,9 @@ import androidx.compose.material3.adaptive.navigation.NavigableListDetailPaneSca
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.sp
+import com.example.comiclibrary.theme.ComicTitleFontFamily
+import com.example.comiclibrary.theme.ComicYellow
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -81,13 +85,29 @@ fun AdaptiveAppScaffold(
                     selected = currentDestination == AppDestination.LIBRARY,
                     onClick = { currentDestination = AppDestination.LIBRARY },
                     icon = { Icon(Icons.Default.AutoStories, contentDescription = stringResource(R.string.nav_library)) },
-                    label = { Text(stringResource(R.string.nav_library)) }
+                    label = {
+                        Text(
+                            text = stringResource(R.string.nav_library).uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 1.sp
+                            )
+                        )
+                    }
                 )
                 item(
                     selected = currentDestination == AppDestination.SETTINGS,
                     onClick = { currentDestination = AppDestination.SETTINGS },
                     icon = { Icon(Icons.Default.Tune, contentDescription = stringResource(R.string.nav_settings)) },
-                    label = { Text(stringResource(R.string.nav_settings)) }
+                    label = {
+                        Text(
+                            text = stringResource(R.string.nav_settings).uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = ComicTitleFontFamily,
+                                letterSpacing = 1.sp
+                            )
+                        )
+                    }
                 )
             },
             modifier = Modifier.fillMaxSize()
