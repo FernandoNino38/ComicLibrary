@@ -372,7 +372,7 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "1.2 (Build 12)",
+                        text = "1.3 (Build 13)",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = ComicTitleFontFamily,
                             fontSize = 15.sp,

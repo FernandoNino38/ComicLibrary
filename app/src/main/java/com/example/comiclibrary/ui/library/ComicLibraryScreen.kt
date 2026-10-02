@@ -838,7 +838,7 @@ fun ComicDetailModalDialog(
                 ) {
                     DetailInfoRow(
                         label = stringResource(R.string.dialog_storage_location),
-                        value = comic.uriString,
+                        value = java.net.URLDecoder.decode(comic.uriString, "UTF-8"),
                         isMonospace = true
                     )
 

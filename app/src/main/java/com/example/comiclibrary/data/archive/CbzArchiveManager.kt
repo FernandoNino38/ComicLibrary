@@ -138,6 +138,11 @@ object CbzArchiveManager {
                 ComicPage(index = index, entryName = name)
             }
 
+            if (comicPages.isEmpty()) {
+                Log.w(TAG, "No pages found for $fileName, aborting import.")
+                return@withContext null
+            }
+
             ComicBook(
                 id = comicId,
                 uriString = uri.toString(),
