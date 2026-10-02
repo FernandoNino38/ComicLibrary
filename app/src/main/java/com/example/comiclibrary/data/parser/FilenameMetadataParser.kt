@@ -10,7 +10,7 @@ object FilenameMetadataParser {
 
     private val yearRegex = Regex("""\b(19\d\d|20\d\d)\b""")
     private val volumeRegex = Regex("""(?i)\b(?:v|vol|volume)\.?\s*(\d+)\b""")
-    private val issueRegex = Regex("""(?i)(?:#|issue|iss\.?|no\.?)\s*(\d+(?:\.\d+)?)|(?:\s+)(\d{1,4})(?:.cbz|.zip|.epub|$)""")
+    private val issueRegex = Regex("""(?i)(?:#|issue|iss\.?|no\.?)\s*(\d+(?:\.\d+)?)|(?:\s+|-)(\d{1,4})$""")
 
     fun parse(fileName: String, pageCount: Int = 0): ComicMetadata {
         // Strip extension
@@ -27,23 +27,25 @@ object FilenameMetadataParser {
         }
 
         var issue = ""
+        var issueMatchVal = ""
         issueRegex.find(baseName)?.let { match ->
             issue = match.groupValues[1].ifEmpty { match.groupValues[2] }
+            issueMatchVal = match.value
         }
 
         // Clean series name by removing year, volume, and issue tokens
         var cleanSeries = baseName
-        cleanSeries = cleanSeries.replace(Regex("""\((?:19\d\d|20\d\d)\)"""), "")
+        cleanSeries = cleanSeries.replace(Regex("""\b(?:19\d\d|20\d\d)\b"""), "")
         cleanSeries = cleanSeries.replace(Regex("""(?i)\b(?:v|vol|volume)\.?\s*\d+\b"""), "")
-        if (issue.isNotEmpty()) {
-            cleanSeries = cleanSeries.replace(Regex("""(?i)#\s*""" + Regex.escape(issue)), "")
+        if (issueMatchVal.isNotEmpty()) {
+            cleanSeries = cleanSeries.replace(issueMatchVal, "")
         }
-        cleanSeries = cleanSeries.replace(Regex("""[\(\)\[\]_]"""), " ")
+        cleanSeries = cleanSeries.replace(Regex("""[\(\)\[\]_\-]"""), " ")
             .replace(Regex("""\s+"""), " ")
-            .trim(' ', '-')
+            .trim()
 
         return ComicMetadata(
-            title = if (issue.isNotEmpty()) "$cleanSeries #$issue" else cleanSeries,
+            title = if (issue.isNotEmpty()) "$cleanSeries #$issue".trim() else cleanSeries,
             series = cleanSeries,
             number = issue,
             volume = volume,
