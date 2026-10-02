@@ -54,6 +54,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -117,6 +120,8 @@ fun ComicLibraryScreen(
     var comicForDetailDialog by remember { mutableStateOf<ComicBook?>(null) }
     var selectedSeries by remember { mutableStateOf<String?>(null) }
     var displayLimit by remember { mutableStateOf(30) }
+    var isStatusMenuExpanded by remember { mutableStateOf(false) }
+    var isSeriesMenuExpanded by remember { mutableStateOf(false) }
     val isDark = isSystemInDarkTheme()
 
     val filterOptions = listOf(
@@ -302,22 +307,21 @@ fun ComicLibraryScreen(
                 .weight(1f)
                 .padding(horizontal = 24.dp)
         ) {
-            // Horizontally Scrollable Filter Chips
+            // Dropdown Filters
             if (comics.isNotEmpty()) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    filterOptions.forEach { (key, label) ->
-                        val isSelected = selectedFilterKey == key
+                    // Status Filter
+                    Box {
+                        val currentLabel = filterOptions.find { it.first == selectedFilterKey }?.second ?: "STATUS"
                         FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedFilterKey = key },
+                            selected = selectedFilterKey != "all",
+                            onClick = { isStatusMenuExpanded = true },
                             label = {
                                 Text(
-                                    text = label.uppercase(),
+                                    text = currentLabel.uppercase(),
                                     style = MaterialTheme.typography.labelMedium.copy(
                                         fontFamily = ComicTitleFontFamily,
                                         fontSize = 13.sp,
@@ -325,69 +329,11 @@ fun ComicLibraryScreen(
                                     )
                                 )
                             },
-                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
-                            border = BorderStroke(
-                                1.5.dp,
-                                if (isSelected) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant
-                            ),
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = ComicYellow,
-                                selectedLabelColor = ComicInkBlack,
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                labelColor = MaterialTheme.colorScheme.onSurface
-                            )
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(14.dp))
-            }
-
-            if (availableSeries.isNotEmpty()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = selectedSeries == null,
-                        onClick = { selectedSeries = null; displayLimit = 30 },
-                        label = {
-                            Text(
-                                text = "TODAS AS SÉRIES",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontFamily = ComicTitleFontFamily,
-                                    fontSize = 11.sp,
-                                    letterSpacing = 1.sp
-                                )
-                            )
-                        },
-                        shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
-                        border = BorderStroke(1.5.dp, if (selectedSeries == null) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = ComicYellow,
-                            selectedLabelColor = ComicInkBlack,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            labelColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    )
-                    availableSeries.forEach { series ->
-                        val isSelected = selectedSeries == series
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedSeries = series; displayLimit = 30 },
-                            label = {
-                                Text(
-                                    text = series.uppercase(),
-                                    style = MaterialTheme.typography.labelMedium.copy(
-                                        fontFamily = ComicTitleFontFamily,
-                                        fontSize = 11.sp,
-                                        letterSpacing = 1.sp
-                                    )
-                                )
+                            trailingIcon = {
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                             },
                             shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
-                            border = BorderStroke(1.5.dp, if (isSelected) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant),
+                            border = BorderStroke(1.5.dp, if (selectedFilterKey != "all") (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant),
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = ComicYellow,
                                 selectedLabelColor = ComicInkBlack,
@@ -395,6 +341,77 @@ fun ComicLibraryScreen(
                                 labelColor = MaterialTheme.colorScheme.onSurface
                             )
                         )
+                        DropdownMenu(
+                            expanded = isStatusMenuExpanded,
+                            onDismissRequest = { isStatusMenuExpanded = false }
+                        ) {
+                            filterOptions.forEach { (key, label) ->
+                                DropdownMenuItem(
+                                    text = { Text(label.uppercase(), fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp) },
+                                    onClick = {
+                                        selectedFilterKey = key
+                                        isStatusMenuExpanded = false
+                                        displayLimit = 30
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Series Filter
+                    if (availableSeries.isNotEmpty()) {
+                        Box {
+                            FilterChip(
+                                selected = selectedSeries != null,
+                                onClick = { isSeriesMenuExpanded = true },
+                                label = {
+                                    Text(
+                                        text = (selectedSeries ?: "SÉRIES (TODAS)").uppercase(),
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            fontFamily = ComicTitleFontFamily,
+                                            fontSize = 13.sp,
+                                            letterSpacing = 1.sp
+                                        ),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                                },
+                                shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                                border = BorderStroke(1.5.dp, if (selectedSeries != null) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = ComicYellow,
+                                    selectedLabelColor = ComicInkBlack,
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                    labelColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            DropdownMenu(
+                                expanded = isSeriesMenuExpanded,
+                                onDismissRequest = { isSeriesMenuExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("TODAS AS SÉRIES", fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp) },
+                                    onClick = {
+                                        selectedSeries = null
+                                        isSeriesMenuExpanded = false
+                                        displayLimit = 30
+                                    }
+                                )
+                                availableSeries.forEach { series ->
+                                    DropdownMenuItem(
+                                        text = { Text(series.uppercase(), fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp) },
+                                        onClick = {
+                                            selectedSeries = series
+                                            isSeriesMenuExpanded = false
+                                            displayLimit = 30
+                                        }
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(14.dp))
