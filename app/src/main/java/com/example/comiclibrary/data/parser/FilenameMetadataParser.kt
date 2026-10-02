@@ -10,11 +10,11 @@ object FilenameMetadataParser {
 
     private val yearRegex = Regex("""\b(19\d\d|20\d\d)\b""")
     private val volumeRegex = Regex("""(?i)\b(?:v|vol|volume)\.?\s*(\d+)\b""")
-    private val issueRegex = Regex("""(?i)(?:#|issue|iss\.?|no\.?)\s*(\d+(?:\.\d+)?)|(?:\s+)(\d{1,4})(?:\.cbz|\.zip|$)""")
+    private val issueRegex = Regex("""(?i)(?:#|issue|iss\.?|no\.?)\s*(\d+(?:\.\d+)?)|(?:\s+)(\d{1,4})(?:.cbz|.zip|.epub|$)""")
 
     fun parse(fileName: String, pageCount: Int = 0): ComicMetadata {
         // Strip extension
-        val baseName = fileName.replace(Regex("""(?i)\.(cbz|zip)$"""), "").trim()
+        val baseName = fileName.replace(Regex("""(?i)\.(cbz|zip|epub)$"""), "").trim()
 
         var year: Int? = null
         yearRegex.find(baseName)?.let { match ->

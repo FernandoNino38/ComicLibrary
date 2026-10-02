@@ -187,7 +187,7 @@ fun SettingsSupportingPane(
                     Button(
                         onClick = {
                             filePickerLauncher.launch(
-                                arrayOf("application/x-cbz", "application/zip", "application/octet-stream", "*/*")
+                                arrayOf("application/x-cbz", "application/zip", "application/epub+zip", "application/octet-stream", "*/*")
                             )
                         },
                         modifier = Modifier.weight(1f),
@@ -372,7 +372,7 @@ fun SettingsSupportingPane(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "1.0 (Build 10)",
+                        text = "1.1 (Build 11)",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontFamily = ComicTitleFontFamily,
                             fontSize = 15.sp,

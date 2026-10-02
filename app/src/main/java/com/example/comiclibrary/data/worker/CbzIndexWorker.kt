@@ -78,7 +78,7 @@ class CbzIndexWorker(
                 collectCbzFiles(file, result)
             } else {
                 val name = file.name?.lowercase() ?: ""
-                if (name.endsWith(".cbz") || name.endsWith(".zip")) {
+                if (name.endsWith(".cbz", ignoreCase = true) || name.endsWith(".zip", ignoreCase = true) || name.endsWith(".epub", ignoreCase = true)) {
                     result.add(file.uri)
                 }
             }
