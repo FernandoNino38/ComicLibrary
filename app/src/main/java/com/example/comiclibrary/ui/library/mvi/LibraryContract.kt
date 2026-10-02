@@ -13,8 +13,13 @@ data class LibraryState(
     val selectedComicId: String? = null,
     val searchQuery: String = "",
     val selectedFilter: String = "Todos",
+    val selectedSeries: String? = null,
+    val displayLimit: Int = 20,
     val errorMessage: String? = null
 ) {
+    val availableSeries: List<String>
+        get() = comics.map { it.metadata.series }.filter { it.isNotBlank() }.distinct().sorted()
+
     val filteredComics: List<ComicBook>
         get() = comics.filter { comic ->
             val matchesQuery = searchQuery.isBlank() ||
@@ -25,13 +30,32 @@ data class LibraryState(
             val matchesFilter = when (selectedFilter) {
                 "Favoritos" -> comic.isFavorite
                 "Lendo" -> comic.lastReadPage > 0 && !comic.isFinished
-                "ConcluÃ­dos" -> comic.isFinished
-                "MangÃ¡" -> comic.metadata.isManga
+                "Concluídos" -> comic.isFinished
+                "Mangá" -> comic.metadata.isManga
                 else -> true
             }
 
-            matchesQuery && matchesFilter
-        }
+            val matchesSeries = selectedSeries == null || comic.metadata.series.equals(selectedSeries, ignoreCase = true)
+
+            matchesQuery && matchesFilter && matchesSeries
+        }.take(displayLimit)
+
+    val hasMoreToLoad: Boolean
+        get() = comics.filter { comic ->
+            val matchesQuery = searchQuery.isBlank() ||
+                    comic.metadata.displayTitle.contains(searchQuery, ignoreCase = true) ||
+                    comic.metadata.writer.contains(searchQuery, ignoreCase = true) ||
+                    comic.metadata.genre.contains(searchQuery, ignoreCase = true)
+            val matchesFilter = when (selectedFilter) {
+                "Favoritos" -> comic.isFavorite
+                "Lendo" -> comic.lastReadPage > 0 && !comic.isFinished
+                "Concluídos" -> comic.isFinished
+                "Mangá" -> comic.metadata.isManga
+                else -> true
+            }
+            val matchesSeries = selectedSeries == null || comic.metadata.series.equals(selectedSeries, ignoreCase = true)
+            matchesQuery && matchesFilter && matchesSeries
+        }.size > displayLimit
 
     val selectedComic: ComicBook?
         get() = comics.firstOrNull { it.id == selectedComicId } ?: comics.firstOrNull()
@@ -49,5 +73,7 @@ sealed interface LibraryIntent {
     data class UpdateProgress(val comicId: String, val pageIndex: Int) : LibraryIntent
     data class UpdateSearch(val query: String) : LibraryIntent
     data class UpdateFilter(val filter: String) : LibraryIntent
+    data class UpdateSeries(val series: String?) : LibraryIntent
+    data object LoadMore : LibraryIntent
     data object DismissError : LibraryIntent
 }

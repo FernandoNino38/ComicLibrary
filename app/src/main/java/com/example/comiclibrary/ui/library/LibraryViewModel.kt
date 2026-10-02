@@ -81,7 +81,7 @@ class LibraryViewModel(
             is LibraryIntent.UpdateSearch -> {
                 _state.update { it.copy(searchQuery = intent.query) }
             }
-            is LibraryIntent.UpdateFilter -> {
+            is LibraryIntent.UpdateSeries -> { _state.update { it.copy(selectedSeries = intent.series, displayLimit = 20) } } is LibraryIntent.LoadMore -> { _state.update { it.copy(displayLimit = it.displayLimit + 20) } } is LibraryIntent.UpdateFilter -> {
                 _state.update { it.copy(selectedFilter = intent.filter) }
             }
             is LibraryIntent.DismissError -> {

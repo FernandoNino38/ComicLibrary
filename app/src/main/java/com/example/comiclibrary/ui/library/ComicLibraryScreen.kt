@@ -115,6 +115,8 @@ fun ComicLibraryScreen(
     var isSearchExpanded by remember { mutableStateOf(false) }
     var selectedFilterKey by remember { mutableStateOf("all") }
     var comicForDetailDialog by remember { mutableStateOf<ComicBook?>(null) }
+    var selectedSeries by remember { mutableStateOf<String?>(null) }
+    var displayLimit by remember { mutableStateOf(30) }
     val isDark = isSystemInDarkTheme()
 
     val filterOptions = listOf(
@@ -124,6 +126,10 @@ fun ComicLibraryScreen(
         "completed" to stringResource(R.string.filter_completed),
         "manga" to stringResource(R.string.filter_manga)
     )
+
+    val availableSeries = remember(comics) {
+        comics.map { it.metadata.series }.filter { it.isNotBlank() }.distinct().sorted()
+    }
 
     val filteredComics = comics.filter { comic ->
         val matchesQuery = searchQuery.isBlank() ||
@@ -139,8 +145,12 @@ fun ComicLibraryScreen(
             else -> true
         }
 
-        matchesQuery && matchesFilter
+        val matchesSeries = selectedSeries == null || comic.metadata.series.equals(selectedSeries, ignoreCase = true)
+
+        matchesQuery && matchesFilter && matchesSeries
     }
+
+    val pagedComics = filteredComics.take(displayLimit)
 
     Column(
         modifier = modifier
@@ -332,6 +342,64 @@ fun ComicLibraryScreen(
                 Spacer(modifier = Modifier.height(14.dp))
             }
 
+            if (availableSeries.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = selectedSeries == null,
+                        onClick = { selectedSeries = null; displayLimit = 30 },
+                        label = {
+                            Text(
+                                text = "TODAS AS SÉRIES",
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontFamily = ComicTitleFontFamily,
+                                    fontSize = 11.sp,
+                                    letterSpacing = 1.sp
+                                )
+                            )
+                        },
+                        shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                        border = BorderStroke(1.5.dp, if (selectedSeries == null) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = ComicYellow,
+                            selectedLabelColor = ComicInkBlack,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            labelColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    availableSeries.forEach { series ->
+                        val isSelected = selectedSeries == series
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedSeries = series; displayLimit = 30 },
+                            label = {
+                                Text(
+                                    text = series.uppercase(),
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontFamily = ComicTitleFontFamily,
+                                        fontSize = 11.sp,
+                                        letterSpacing = 1.sp
+                                    )
+                                )
+                            },
+                            shape = SquircleShape(cornerRadiusDp = 10.dp, smoothing = 0.5f),
+                            border = BorderStroke(1.5.dp, if (isSelected) (if (isDark) ComicYellow else ComicInkBlack) else MaterialTheme.colorScheme.outlineVariant),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = ComicYellow,
+                                selectedLabelColor = ComicInkBlack,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                labelColor = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(14.dp))
+            }
+
             if (isLoading && comics.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = if (isDark) ComicYellow else ComicRedDark)
@@ -427,7 +495,7 @@ fun ComicLibraryScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(filteredComics, key = { it.id }) { comic ->
+                    items(pagedComics, key = { it.id }) { comic ->
                         ComicFocusBlockItem(
                             comic = comic,
                             isSelected = comic.id == selectedComicId,
@@ -435,6 +503,18 @@ fun ComicLibraryScreen(
                             onLongClick = { comicForDetailDialog = comic },
                             onToggleFavorite = { onToggleFavorite(comic.id) }
                         )
+                    }
+                    if (filteredComics.size > displayLimit) {
+                        item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(this.maxLineSpan) }) {
+                            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
+                                Button(
+                                    onClick = { displayLimit += 30 },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
+                                ) {
+                                    Text("CARREGAR MAIS (+30)", fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp)
+                                }
+                            }
+                        }
                     }
                 }
             }
