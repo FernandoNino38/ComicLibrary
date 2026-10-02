@@ -31,7 +31,7 @@ Comic Library was designed from the ground up to immerse readers in the classic 
 
 ## ✨ Features
 
-- **🚀 Streaming CBZ Archive Engine**: Reads `.cbz` and `.zip` archives on demand directly from Android's Storage Access Framework (SAF) with zero unnecessary disk extraction.
+- **🚀 Streaming Archive Engine (Formats Supported: `.cbz`, `.zip`, `.epub`)**: Reads archives on demand directly from Android's Storage Access Framework (SAF) with zero unnecessary disk extraction. The engine includes native support for fixed-layout `.epub` comic archives.
 - **🖤 Pure AMOLED Dark Mode (`#000000`) & ☀️ Comic Paper Light Mode**:
   - **AMOLED Dark Mode**: Saves battery on OLED displays and prevents eye strain during extended night reading sessions.
   - **High-Contrast Comic Paper Light Mode**: Crisp vintage paper background with deep comic ink black lettering (`#000000`), vibrant comic action stickers, and deep crimson accents for maximum legibility under bright sunlight.
@@ -47,12 +47,14 @@ Comic Library was designed from the ground up to immerse readers in the classic 
 - **📖 Manga (RTL) & Western (LTR) Reading Modes**:
   - Automatic detection of manga metadata.
   - Runtime one-tap toggle between Right-to-Left (Manga) and Left-to-Right (Western).
-- **📋 Rich Metadata Extraction (`ComicInfo.xml`)**:
+- **📋 Rich Metadata Extraction (`ComicInfo.xml`) & Smart Grouping**:
   - Reads embedded writer, penciller, inker, publisher, synopsis, and year.
+  - **Smart Filename Fallback**: Aggressively parses and strips volume and issue numbers from filenames to accurately group comic series (e.g. "Turma da Monica 01" and "Turma da Monica 02" are correctly grouped into a single "Turma da Monica" collection).
   - **Long-Press Dossier**: Long-pressing any comic opens a detailed comic book technical sheet displaying complete metadata, file size, storage URI, and quick actions.
-- **🔍 Instant Library Search & Filters**:
+- **🔍 Instant Library Search, Filters & Pagination**:
   - Expandable search icon bar in the library header.
-  - Action badge filters: *All*, *Reading*, *Unread*, *Completed*, *Manga*, and *Favorites*.
+  - Interactive dropdown filters for **Status** (*All*, *Reading*, *Unread*, *Completed*, *Favorites*) and **Collections / Series**.
+  - **High-Performance Pagination**: Initially loads 30 comics per page to preserve memory, with an intuitive "Load More (+30)" button.
 - **🌐 Bilingual Internationalization (i18n)**:
   - English and Portuguese automatically matching Android system settings.
 - **📱 Adaptive Form Factor Layouts**:
