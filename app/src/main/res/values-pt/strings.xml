@@ -79,4 +79,8 @@
     <string name="settings_app_info_title">Informa√ß√µes do Aplicativo</string>
     <string name="settings_version_label">Vers√£o</string>
     <string name="settings_architecture_label">Arquitetura</string>
+    <string name="filter_status_label">Status</string>
+    <string name="filter_series_all">SÈries (Todas)</string>
+    <string name="filter_series_all_short">Todas as SÈries</string>
+    <string name="btn_load_more">Carregar Mais (+30)</string>
 </resources>

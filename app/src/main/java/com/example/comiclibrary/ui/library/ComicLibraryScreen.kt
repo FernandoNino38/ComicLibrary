@@ -128,8 +128,7 @@ fun ComicLibraryScreen(
         "all" to stringResource(R.string.filter_all),
         "favorites" to stringResource(R.string.filter_favorites),
         "reading" to stringResource(R.string.filter_reading),
-        "completed" to stringResource(R.string.filter_completed),
-        "manga" to stringResource(R.string.filter_manga)
+        "completed" to stringResource(R.string.filter_completed)
     )
 
     val availableSeries = remember(comics) {
@@ -315,7 +314,7 @@ fun ComicLibraryScreen(
                 ) {
                     // Status Filter
                     Box {
-                        val currentLabel = filterOptions.find { it.first == selectedFilterKey }?.second ?: "STATUS"
+                        val currentLabel = filterOptions.find { it.first == selectedFilterKey }?.second ?: stringResource(R.string.filter_status_label)
                         FilterChip(
                             selected = selectedFilterKey != "all",
                             onClick = { isStatusMenuExpanded = true },
@@ -366,7 +365,7 @@ fun ComicLibraryScreen(
                                 onClick = { isSeriesMenuExpanded = true },
                                 label = {
                                     Text(
-                                        text = (selectedSeries ?: "SÉRIES (TODAS)").uppercase(),
+                                        text = (selectedSeries ?: stringResource(R.string.filter_series_all)).uppercase(),
                                         style = MaterialTheme.typography.labelMedium.copy(
                                             fontFamily = ComicTitleFontFamily,
                                             fontSize = 13.sp,
@@ -393,7 +392,7 @@ fun ComicLibraryScreen(
                                 onDismissRequest = { isSeriesMenuExpanded = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("TODAS AS SÉRIES", fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp) },
+                                    text = { Text(stringResource(R.string.filter_series_all_short), fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp) },
                                     onClick = {
                                         selectedSeries = null
                                         isSeriesMenuExpanded = false
@@ -528,7 +527,7 @@ fun ComicLibraryScreen(
                                     onClick = { displayLimit += 30 },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant, contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                                 ) {
-                                    Text("CARREGAR MAIS (+30)", fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp)
+                                    Text(stringResource(R.string.btn_load_more), fontFamily = ComicTitleFontFamily, letterSpacing = 1.sp)
                                 }
                             }
                         }

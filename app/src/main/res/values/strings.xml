@@ -79,4 +79,8 @@
     <string name="settings_app_info_title">App Information</string>
     <string name="settings_version_label">Version</string>
     <string name="settings_architecture_label">Architecture</string>
+    <string name="filter_status_label">Status</string>
+    <string name="filter_series_all">All Series</string>
+    <string name="filter_series_all_short">All Series</string>
+    <string name="btn_load_more">Load More (+30)</string>
 </resources>
