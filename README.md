@@ -17,7 +17,7 @@
   <img src="docs/screenshots/reader.png" width="30%" />
   <img src="docs/screenshots/settings.png" width="30%" />
 </p>
----
+
 
 ## 🛠️ Building & Running
 
